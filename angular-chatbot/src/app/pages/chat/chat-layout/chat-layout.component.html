@@ -1,0 +1,65 @@
+@if (sidebarOpen()) {
+  <div class="sidebar-overlay" (click)="toggleSidebar()" aria-hidden="true"></div>
+}
+<div class="chat-layout">
+  <aside class="sidebar" [class.open]="sidebarOpen()">
+    <div class="sidebar-header">
+      <button class="btn-icon" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <h2>Chats</h2>
+    </div>
+
+    <button class="btn-new-chat" (click)="newChat()">
+      <span class="icon">+</span>
+      New chat
+    </button>
+
+    <div class="quota-bar" *ngIf="remainingMessages() !== null">
+      <span class="quota-label">
+        {{ freeMessagesLeft() }} free {{ freeMessagesLeft() === 1 ? 'message' : 'messages' }} left
+      </span>
+      @if (needsPayment()) {
+        <button class="btn-upgrade" (click)="openPayment()">Upgrade</button>
+      }
+    </div>
+
+    <nav class="chat-list">
+      @if (loadingChats()) {
+        <div class="loading">Loading chats...</div>
+      } @else if (chats().length === 0) {
+        <div class="empty">No chats yet</div>
+      } @else {
+        @for (c of chats(); track c.id) {
+          <a
+            [routerLink]="['/chat', c.id]"
+            routerLinkActive="active"
+            class="chat-item"
+          >
+            <span class="chat-title">{{ c.title || 'New Chat' }}</span>
+            @if (c.message_count !== undefined && c.message_count > 0) {
+              <span class="chat-count">{{ c.message_count }}</span>
+            }
+          </a>
+        }
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="user-name">{{ user()?.username || user()?.email || 'User' }}</span>
+      <button class="btn-logout" (click)="logout()">Log out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <router-outlet />
+  </main>
+</div>
+
+@if (showPaymentModal()) {
+  <app-payment-modal (closed)="closePayment()" />
+}

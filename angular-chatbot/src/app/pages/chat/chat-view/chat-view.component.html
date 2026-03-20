@@ -1,0 +1,60 @@
+<div class="chat-view">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading chat...</p>
+    </div>
+  } @else {
+    <div class="messages" #messagesContainer>
+      @if (messages().length === 0) {
+        <div class="empty-state">
+          <h3>Start a conversation</h3>
+          <p>Send a message to get started. You have {{ remainingMessages() ?? 3 }} free messages.</p>
+        </div>
+      } @else {
+        @for (msg of messages(); track msg.id) {
+          <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+            <div class="bubble">
+              <p>{{ msg.content }}</p>
+              <span class="time">{{ formatTime(msg.created_at) }}</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    @if (error()) {
+      <div class="error-banner">{{ error() }}</div>
+    }
+
+    <div class="input-area">
+      @if (needsPayment()) {
+        <div class="quota-exceeded">
+          <p>You've used your free messages. Upgrade to continue.</p>
+          <button class="btn-upgrade" (click)="openPayment()">Upgrade</button>
+        </div>
+      } @else {
+        <form (ngSubmit)="send()" class="input-form">
+          <input
+            type="text"
+            [formControl]="input"
+            placeholder="Type your message..."
+            [disabled]="sending()"
+            (keydown.enter)="$event.preventDefault(); send()"
+          />
+          <button type="submit" class="btn-send" [disabled]="sending() || !input.value.trim()">
+            @if (sending()) {
+              <span class="spinner-small"></span>
+            } @else {
+              Send
+            }
+          </button>
+        </form>
+      }
+    </div>
+  }
+</div>
+
+@if (showPaymentModal()) {
+  <app-payment-modal (closed)="closePayment()" />
+}
