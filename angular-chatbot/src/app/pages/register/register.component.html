@@ -1,0 +1,69 @@
+<div class="register-page">
+  <div class="register-card">
+    <h1>Create account</h1>
+    <p class="subtitle">Get started with your AI chatbot</p>
+
+    @if (error) {
+      <div class="error-banner">{{ error }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="register-form">
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+      </div>
+      <div class="field">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="johndoe"
+          autocomplete="username"
+        />
+      </div>
+      <div class="field">
+        <label for="full_name">Full name</label>
+        <input
+          id="full_name"
+          type="text"
+          formControlName="full_name"
+          placeholder="John Doe"
+        />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="new-password"
+        />
+        <span class="hint">At least 6 characters</span>
+      </div>
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? 'Creating account...' : 'Create account' }}
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>or sign up with</span>
+    </div>
+
+    <div class="social-buttons">
+      <a [href]="googleLoginUrl" class="btn-social">Google</a>
+      <a [href]="githubLoginUrl" class="btn-social">GitHub</a>
+    </div>
+
+    <p class="footer-link">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
+</div>
