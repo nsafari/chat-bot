@@ -32,8 +32,15 @@ jobs:
           npm ci
 
       - name: Build
+        env:
+          API_URL: ${{ vars.API_URL || '' }}
         run: |
           cd angular-chatbot
+          if [ -n "$API_URL" ]; then
+            sed -i "s|apiUrl:.*|apiUrl: '$API_URL'|" src/environments/environment.prod.ts
+          else
+            sed -i "s|apiUrl:.*|apiUrl: ''|" src/environments/environment.prod.ts
+          fi
           if [ "${{ github.repository }}" = "nsafari/nsafari.github.io" ]; then
             npm run build -- --base-href /
           else
