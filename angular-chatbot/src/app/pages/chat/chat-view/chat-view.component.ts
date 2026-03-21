@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -16,12 +16,15 @@ import { Subscription } from 'rxjs';
   templateUrl: './chat-view.component.html',
   styleUrl: './chat-view.component.scss'
 })
-export class ChatViewComponent implements OnInit, OnDestroy {
+export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('messagesContainer') private messagesEl?: ElementRef<HTMLDivElement>;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private chat = inject(ChatService);
   private auth = inject(AuthService);
   private sub?: Subscription;
+  private scrollPending = false;
 
   chatId = signal<string | null>(null);
   messages = signal<MessageResponse[]>([]);
@@ -54,12 +57,25 @@ export class ChatViewComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
+  ngAfterViewChecked(): void {
+    if (this.scrollPending && this.messagesEl?.nativeElement) {
+      this.scrollPending = false;
+      const el = this.messagesEl.nativeElement;
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+
+  private scrollToBottom(): void {
+    this.scrollPending = true;
+  }
+
   loadChat(id: string): void {
     this.loading.set(true);
     this.chat.getChat(id).subscribe({
       next: (chat) => {
         this.messages.set(chat.messages ?? []);
         this.loading.set(false);
+        this.scrollToBottom();
       },
       error: (err) => {
         this.loading.set(false);
@@ -89,6 +105,7 @@ export class ChatViewComponent implements OnInit, OnDestroy {
           res.user_message,
           res.assistant_message
         ]);
+        this.scrollToBottom();
         if (!this.auth.isDemoMode()) this.auth.loadUser().subscribe();
         this.sending.set(false);
       },
