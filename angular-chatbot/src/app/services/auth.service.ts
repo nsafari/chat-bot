@@ -9,6 +9,10 @@ const TOKEN_KEY = 'access_token';
 const REFRESH_KEY = 'refresh_token';
 const USER_KEY = 'user';
 
+/** Demo credentials to try the UI without a backend: demo / demo123 */
+export const DEMO_CREDENTIALS = { login: 'demo', password: 'demo123' };
+const DEMO_TOKEN = 'demo';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
@@ -24,8 +28,22 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    if (this.tokenSignal()) {
-      this.loadUser().subscribe();
+    const token = this.tokenSignal();
+    if (token) {
+      if (token === DEMO_TOKEN) {
+        const stored = localStorage.getItem(USER_KEY);
+        if (stored) {
+          try {
+            this.userSignal.set(JSON.parse(stored));
+          } catch {
+            this.demoLogin();
+          }
+        } else {
+          this.demoLogin();
+        }
+      } else {
+        this.loadUser().subscribe();
+      }
     }
   }
 
@@ -42,6 +60,10 @@ export class AuthService {
   }
 
   logout(): Observable<unknown> {
+    if (this.isDemoMode()) {
+      this.clearAuth();
+      return of(null);
+    }
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth()),
       catchError(() => {
@@ -49,6 +71,27 @@ export class AuthService {
         return of(null);
       })
     );
+  }
+
+  /** Demo login – bypasses API, lets you explore the UI without a backend */
+  demoLogin(): void {
+    const mockUser: UserResponse = {
+      username: 'demo',
+      email: 'demo@example.com',
+      full_name: 'Demo User',
+      remaining_messages_today: 3,
+      is_admin: false,
+      created_at: new Date().toISOString()
+    };
+    localStorage.setItem(TOKEN_KEY, DEMO_TOKEN);
+    localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+    localStorage.removeItem(REFRESH_KEY);
+    this.tokenSignal.set(DEMO_TOKEN);
+    this.userSignal.set(mockUser);
+  }
+
+  isDemoMode(): boolean {
+    return this.getAccessToken() === DEMO_TOKEN;
   }
 
   refreshToken(): Observable<Token> {
@@ -95,7 +138,13 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, res.access_token);
     localStorage.setItem(REFRESH_KEY, res.refresh_token);
     this.tokenSignal.set(res.access_token);
-    this.loadUser().subscribe();
+    const user = (res as Token & { user?: UserResponse }).user;
+    if (user) {
+      this.userSignal.set(user);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      this.loadUser().subscribe();
+    }
   }
 
   private clearAuth(): void {

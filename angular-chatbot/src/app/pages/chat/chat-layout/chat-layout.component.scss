@@ -1,3 +1,16 @@
+.demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #0f172a;
+  background: #38bdf8;
+}
+
 .sidebar-overlay {
   display: none;
   @media (max-width: 768px) {

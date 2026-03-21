@@ -1,6 +1,11 @@
 @if (sidebarOpen()) {
   <div class="sidebar-overlay" (click)="toggleSidebar()" aria-hidden="true"></div>
 }
+@if (isDemoMode()) {
+  <div class="demo-banner">
+    Demo mode – UI only. Connect to a backend to use chat.
+  </div>
+}
 <div class="chat-layout">
   <aside class="sidebar" [class.open]="sidebarOpen()">
     <div class="sidebar-header">

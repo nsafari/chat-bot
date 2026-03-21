@@ -69,10 +69,14 @@ export class ChatLayoutComponent {
 
   closePayment(): void {
     this.showPaymentModal.set(false);
-    this.auth.loadUser().subscribe();
+    if (!this.auth.isDemoMode()) {
+      this.auth.loadUser().subscribe();
+    }
   }
 
   toggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);
   }
+
+  isDemoMode = (): boolean => this.auth.isDemoMode();
 }

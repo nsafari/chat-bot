@@ -89,7 +89,7 @@ export class ChatViewComponent implements OnInit, OnDestroy {
           res.user_message,
           res.assistant_message
         ]);
-        this.auth.loadUser().subscribe();
+        if (!this.auth.isDemoMode()) this.auth.loadUser().subscribe();
         this.sending.set(false);
       },
       error: (err) => {
@@ -110,7 +110,9 @@ export class ChatViewComponent implements OnInit, OnDestroy {
 
   closePayment(): void {
     this.showPaymentModal.set(false);
-    this.auth.loadUser().subscribe();
+    if (!this.auth.isDemoMode()) {
+      this.auth.loadUser().subscribe();
+    }
   }
 
   formatTime(iso: string): string {
