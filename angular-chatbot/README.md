@@ -56,3 +56,12 @@ npm run build
 ```
 
 Output: `dist/angular-chatbot/`
+
+## Deployment (aligned with mission-selection)
+
+On push to `main`, GitHub Actions:
+
+1. **GitHub Pages**: Builds the web app and deploys to `https://<owner>.github.io/chat-bot/`
+2. **Android APK**: Builds via Capacitor, creates a release with the APK attached
+
+See `.github/workflows/deploy.yml`.
