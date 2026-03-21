@@ -47,6 +47,11 @@ jobs:
             npm run build -- --base-href /chat-bot/
           fi
 
+      - name: Fix SPA routing (404.html)
+        run: |
+          cd angular-chatbot/dist/angular-chatbot/browser
+          cp index.html 404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
