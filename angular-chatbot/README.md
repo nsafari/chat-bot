@@ -17,9 +17,9 @@ A mobile-first, user-friendly chatbot frontend built with Angular 19, designed t
    npm install
    ```
 
-2. Configure API URL in `src/environments/environment.ts`:
+2. Configure API URL in `src/environments/environment.ts` (dev) and `environment.prod.ts` (production):
    ```ts
-   apiUrl: 'http://localhost:8000'  // Your backend URL
+   apiUrl: 'http://localhost:8000'  // Dev; use full backend URL for prod e.g. 'https://your-api.com'
    ```
 
 3. Start the dev server:
