@@ -95,7 +95,9 @@ export class ChatViewComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.sending.set(false);
         this.input.setValue(text);
-        if (err.status === 402 || err.error?.detail?.includes?.('quota')) {
+        if (this.auth.isDemoMode()) {
+          this.error.set('Demo mode – connect to a backend to send messages.');
+        } else if (err.status === 402 || err.error?.detail?.includes?.('quota')) {
           this.showPaymentModal.set(true);
         } else {
           this.error.set(err.error?.detail ?? 'Failed to send message');
