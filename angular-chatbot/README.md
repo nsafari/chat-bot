@@ -17,10 +17,9 @@ A mobile-first, user-friendly chatbot frontend built with Angular 19, designed t
    npm install
    ```
 
-2. Configure API URL in `src/environments/environment.ts` (dev) and `environment.prod.ts` (production):
-   ```ts
-   apiUrl: 'http://localhost:8000'  // Dev; use full backend URL for prod e.g. 'https://your-api.com'
-   ```
+2. Configure API URL:
+   - **Dev:** `src/environments/environment.ts` → `apiUrl: 'http://localhost:8000'`
+   - **Prod (GitHub Pages):** Repo → Settings → Secrets and variables → Actions → Add variable `API_URL` = `https://your-rag-backend.com` (no trailing slash). The app loads `config.json` at runtime.
 
 3. Start the dev server:
    ```bash

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import type { UserCreate, UserLogin, Token, UserResponse } from '../models/auth.models';
+import { ApiConfigService } from './api-config.service';
 
 const TOKEN_KEY = 'access_token';
 const REFRESH_KEY = 'refresh_token';
@@ -15,7 +16,9 @@ const DEMO_TOKEN = 'demo';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
+  private get apiUrl(): string {
+    return `${this.apiConfig.getApiBaseUrl()}/api/v1/auth`;
+  }
 
   private userSignal = signal<UserResponse | null>(null);
   private tokenSignal = signal<string | null>(this.getStoredToken());
@@ -26,7 +29,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private apiConfig: ApiConfigService
   ) {
     const token = this.tokenSignal();
     if (token) {

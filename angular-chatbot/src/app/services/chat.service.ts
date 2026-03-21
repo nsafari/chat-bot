@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ApiConfigService } from './api-config.service';
 import type {
   ChatCreate,
   ChatListResponse,
@@ -14,9 +14,14 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/chats`;
+  constructor(
+    private http: HttpClient,
+    private apiConfig: ApiConfigService
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private get apiUrl(): string {
+    return `${this.apiConfig.getApiBaseUrl()}/api/v1/chats`;
+  }
 
   createChat(title?: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(this.apiUrl, { title: title ?? 'New Chat' });

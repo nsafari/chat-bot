@@ -52,6 +52,13 @@ jobs:
           cd angular-chatbot/dist/angular-chatbot/browser
           cp index.html 404.html
 
+      - name: Write config.json
+        env:
+          API_URL: ${{ vars.API_URL || '' }}
+        run: |
+          cd angular-chatbot/dist/angular-chatbot/browser
+          echo '{"apiUrl":"'"$API_URL"'"}' > config.json
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

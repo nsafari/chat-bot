@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ApiConfigService } from './api-config.service';
 import type {
   PaymentInitiateRequest,
   PaymentInitiateResponse,
@@ -12,9 +12,14 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/payment`;
+  constructor(
+    private http: HttpClient,
+    private apiConfig: ApiConfigService
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private get apiUrl(): string {
+    return `${this.apiConfig.getApiBaseUrl()}/api/v1/payment`;
+  }
 
   initiatePayment(request: PaymentInitiateRequest): Observable<PaymentInitiateResponse> {
     return this.http.post<PaymentInitiateResponse>(`${this.apiUrl}/initiate`, request);
