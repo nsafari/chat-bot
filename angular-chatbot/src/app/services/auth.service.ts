@@ -98,6 +98,16 @@ export class AuthService {
     return this.getAccessToken() === DEMO_TOKEN;
   }
 
+  /** Demo mode: update remaining messages (for mock send) */
+  setRemainingMessages(n: number): void {
+    const u = this.userSignal();
+    if (u) {
+      const updated = { ...u, remaining_messages_today: n };
+      this.userSignal.set(updated);
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    }
+  }
+
   refreshToken(): Observable<Token> {
     const refresh = localStorage.getItem(REFRESH_KEY);
     if (!refresh) {
