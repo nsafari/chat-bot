@@ -73,7 +73,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.loading.set(true);
     this.chat.getChat(id).subscribe({
       next: (chat) => {
-        this.messages.set(chat.messages ?? []);
+        this.messages.set([...(chat.messages ?? [])]);
         this.loading.set(false);
         this.scrollToBottom();
       },
