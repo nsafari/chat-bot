@@ -61,7 +61,11 @@ Output: `dist/angular-chatbot/`
 
 On push to `main`, GitHub Actions:
 
-1. **GitHub Pages**: Builds the web app and deploys to `https://<owner>.github.io/chat-bot/`
+1. **GitHub Pages**: Builds the web app and deploys
+   - From `nsafari.github.io` repo → **https://nsafari.github.io** (root)
+   - From `chat-bot` repo → https://nsafari.github.io/chat-bot/
 2. **Android APK**: Builds via Capacitor, creates a release with the APK attached
+
+To run at **https://nsafari.github.io**: create repo `nsafari.github.io`, push this project into it, and enable Pages (Source: GitHub Actions).
 
 See `.github/workflows/deploy.yml`.

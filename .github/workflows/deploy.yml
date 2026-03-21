@@ -34,7 +34,11 @@ jobs:
       - name: Build
         run: |
           cd angular-chatbot
-          npm run build -- --base-href /chat-bot/
+          if [ "${{ github.repository }}" = "nsafari/nsafari.github.io" ]; then
+            npm run build -- --base-href /
+          else
+            npm run build -- --base-href /chat-bot/
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
