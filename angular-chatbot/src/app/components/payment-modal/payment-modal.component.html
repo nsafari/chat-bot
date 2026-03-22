@@ -1,10 +1,10 @@
 <div class="modal-backdrop" (click)="close()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>Upgrade to continue</h2>
-      <button class="btn-close" (click)="close()" aria-label="Close">&times;</button>
+      <h2>ارتقا برای ادامه</h2>
+      <button class="btn-close" (click)="close()" aria-label="بستن">&times;</button>
     </div>
-    <p class="modal-desc">Add credits to your wallet to send more messages.</p>
+    <p class="modal-desc">اعتبار کیف پول اضافه کنید تا پیام بیشتر بفرستید.</p>
 
     @if (error()) {
       <div class="error-banner">{{ error() }}</div>
@@ -12,14 +12,14 @@
 
     <form [formGroup]="form" (ngSubmit)="pay()" class="payment-form">
       <div class="field">
-        <label>Amount (Rials)</label>
+        <label>مبلغ (ریال)</label>
         <input type="number" formControlName="amount" min="1000" step="1000" />
       </div>
       <div class="field">
-        <label>Discount code</label>
+        <label>کد تخفیف</label>
         <div class="discount-row">
-          <input type="text" formControlName="discount_code" placeholder="Optional" />
-          <button type="button" class="btn-validate" (click)="validateDiscount()">Validate</button>
+          <input type="text" formControlName="discount_code" placeholder="اختیاری" />
+          <button type="button" class="btn-validate" (click)="validateDiscount()">اعتبارسنجی</button>
         </div>
         @if (discountValid(); as d) {
           <span class="discount-msg" [class.valid]="d.valid" [class.invalid]="!d.valid">
@@ -28,11 +28,11 @@
         }
       </div>
       <div class="summary">
-        <span>Total:</span>
+        <span>جمع:</span>
         <strong>{{ formatRials(displayAmount) }}</strong>
       </div>
       <button type="submit" class="btn-pay" [disabled]="loading()">
-        {{ loading() ? 'Redirecting...' : 'Pay & continue' }}
+        {{ loading() ? 'در حال انتقال...' : 'پرداخت و ادامه' }}
       </button>
     </form>
   </div>

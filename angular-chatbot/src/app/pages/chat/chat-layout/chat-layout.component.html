@@ -3,41 +3,41 @@
 }
 @if (isDemoMode()) {
   <div class="demo-banner">
-    Demo mode – try the UI with dummy data. Connect to a backend for real AI replies.
+    حالت دمو – با داده نمونه امتحان کنید. برای پاسخ واقعی هوش مصنوعی به بک‌اند متصل شوید.
   </div>
 }
 <div class="chat-layout">
   <aside class="sidebar" [class.open]="sidebarOpen()">
     <div class="sidebar-header">
-      <button class="btn-icon" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+      <button class="btn-icon" (click)="toggleSidebar()" aria-label="منوی کناری">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      <h2>Chats</h2>
+      <h2>چت‌ها</h2>
     </div>
 
     <button class="btn-new-chat" (click)="newChat()">
       <span class="icon">+</span>
-      New chat
+      چت جدید
     </button>
 
     <div class="quota-bar" *ngIf="remainingMessages() !== null">
       <span class="quota-label">
-        {{ freeMessagesLeft() }} free {{ freeMessagesLeft() === 1 ? 'message' : 'messages' }} left
+        {{ freeMessagesLeft() }} پیام رایگان باقی‌مانده
       </span>
       @if (needsPayment()) {
-        <button class="btn-upgrade" (click)="openPayment()">Upgrade</button>
+        <button class="btn-upgrade" (click)="openPayment()">ارتقا</button>
       }
     </div>
 
     <nav class="chat-list">
       @if (loadingChats()) {
-        <div class="loading">Loading chats...</div>
+        <div class="loading">در حال بارگذاری...</div>
       } @else if (chats().length === 0) {
-        <div class="empty">No chats yet</div>
+        <div class="empty">هنوز چتی ندارید</div>
       } @else {
         @for (c of chats(); track c.id) {
           <a
@@ -45,7 +45,7 @@
             routerLinkActive="active"
             class="chat-item"
           >
-            <span class="chat-title">{{ c.title || 'New Chat' }}</span>
+            <span class="chat-title">{{ c.title || 'چت جدید' }}</span>
             @if (c.message_count !== undefined && c.message_count > 0) {
               <span class="chat-count">{{ c.message_count }}</span>
             }
@@ -55,8 +55,8 @@
     </nav>
 
     <div class="sidebar-footer">
-      <span class="user-name">{{ user()?.username || user()?.email || 'User' }}</span>
-      <button class="btn-logout" (click)="logout()">Log out</button>
+      <span class="user-name">{{ user()?.username || user()?.email || 'کاربر' }}</span>
+      <button class="btn-logout" (click)="logout()">خروج</button>
     </div>
   </aside>
 

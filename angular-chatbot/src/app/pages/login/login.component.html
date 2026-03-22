@@ -1,7 +1,7 @@
 <div class="login-page">
   <div class="login-card">
-    <h1>Welcome back</h1>
-    <p class="subtitle">Sign in to continue to your chatbot</p>
+    <h1>خوش آمدید</h1>
+    <p class="subtitle">برای ادامه وارد شوید</p>
 
     @if (error) {
       <div class="error-banner">{{ error }}</div>
@@ -9,7 +9,7 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
       <div class="field">
-        <label for="login">Email or username</label>
+        <label for="login">ایمیل یا نام کاربری</label>
         <input
           id="login"
           type="text"
@@ -19,7 +19,7 @@
         />
       </div>
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password">رمز عبور</label>
         <input
           id="password"
           type="password"
@@ -29,24 +29,24 @@
         />
       </div>
       <button type="submit" class="btn-primary" [disabled]="loading">
-        {{ loading ? 'Signing in...' : 'Sign in' }}
+        {{ loading ? 'در حال ورود...' : 'ورود' }}
       </button>
     </form>
 
     <div class="divider">
-      <span>or continue with</span>
+      <span>یا با ادامه دهید</span>
     </div>
 
     <div class="social-buttons">
-      <a [href]="googleLoginUrl" class="btn-social">Google</a>
-      <a [href]="githubLoginUrl" class="btn-social">GitHub</a>
+      <a [href]="googleLoginUrl" class="btn-social">گوگل</a>
+      <a [href]="githubLoginUrl" class="btn-social">گیت‌هاب</a>
     </div>
 
     <p class="demo-hint">
-      <strong>Demo:</strong> {{ DEMO_CREDENTIALS.login }} / {{ DEMO_CREDENTIALS.password }}
+      <strong>دمو:</strong> {{ DEMO_CREDENTIALS.login }} / {{ DEMO_CREDENTIALS.password }}
     </p>
     <p class="footer-link">
-      Don't have an account? <a routerLink="/register">Sign up</a>
+      حساب ندارید؟ <a routerLink="/register">ثبت‌نام</a>
     </p>
   </div>
 </div>

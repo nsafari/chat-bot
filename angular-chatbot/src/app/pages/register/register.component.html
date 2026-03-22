@@ -1,7 +1,7 @@
 <div class="register-page">
   <div class="register-card">
-    <h1>Create account</h1>
-    <p class="subtitle">Get started with your AI chatbot</p>
+    <h1>ایجاد حساب</h1>
+    <p class="subtitle">شروع با چت‌بات هوش مصنوعی</p>
 
     @if (error) {
       <div class="error-banner">{{ error }}</div>
@@ -9,7 +9,7 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="register-form">
       <div class="field">
-        <label for="email">Email</label>
+        <label for="email">ایمیل</label>
         <input
           id="email"
           type="email"
@@ -19,7 +19,7 @@
         />
       </div>
       <div class="field">
-        <label for="username">Username</label>
+        <label for="username">نام کاربری</label>
         <input
           id="username"
           type="text"
@@ -29,16 +29,16 @@
         />
       </div>
       <div class="field">
-        <label for="full_name">Full name</label>
+        <label for="full_name">نام کامل</label>
         <input
           id="full_name"
           type="text"
           formControlName="full_name"
-          placeholder="John Doe"
+          placeholder="علی محمدی"
         />
       </div>
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password">رمز عبور</label>
         <input
           id="password"
           type="password"
@@ -46,24 +46,24 @@
           placeholder="••••••••"
           autocomplete="new-password"
         />
-        <span class="hint">At least 6 characters</span>
+        <span class="hint">حداقل ۶ کاراکتر</span>
       </div>
       <button type="submit" class="btn-primary" [disabled]="loading">
-        {{ loading ? 'Creating account...' : 'Create account' }}
+        {{ loading ? 'در حال ایجاد...' : 'ایجاد حساب' }}
       </button>
     </form>
 
     <div class="divider">
-      <span>or sign up with</span>
+      <span>یا ثبت‌نام با</span>
     </div>
 
     <div class="social-buttons">
-      <a [href]="googleLoginUrl" class="btn-social">Google</a>
-      <a [href]="githubLoginUrl" class="btn-social">GitHub</a>
+      <a [href]="googleLoginUrl" class="btn-social">گوگل</a>
+      <a [href]="githubLoginUrl" class="btn-social">گیت‌هاب</a>
     </div>
 
     <p class="footer-link">
-      Already have an account? <a routerLink="/login">Sign in</a>
+      قبلاً ثبت‌نام کردید؟ <a routerLink="/login">ورود</a>
     </p>
   </div>
 </div>

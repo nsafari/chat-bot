@@ -113,7 +113,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.sending.set(false);
         this.input.setValue(text);
         if (this.auth.isDemoMode()) {
-          this.error.set('Demo mode – connect to a backend to send messages.');
+          this.error.set('حالت دمو – برای ارسال پیام به بک‌اند متصل شوید.');
         } else if (err.status === 402 || err.error?.detail?.includes?.('quota')) {
           this.showPaymentModal.set(true);
         } else {
@@ -137,7 +137,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   formatTime(iso: string): string {
     try {
       const d = new Date(iso);
-      return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
     }

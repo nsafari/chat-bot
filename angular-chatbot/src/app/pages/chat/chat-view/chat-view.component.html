@@ -2,14 +2,14 @@
   @if (loading()) {
     <div class="loading-state">
       <div class="spinner"></div>
-      <p>Loading chat...</p>
+      <p>در حال بارگذاری چت...</p>
     </div>
   } @else {
     <div class="messages" #messagesContainer>
       @if (messages().length === 0) {
         <div class="empty-state">
-          <h3>Start a conversation</h3>
-          <p>Send a message to get started. You have {{ remainingMessages() ?? 3 }} free messages.</p>
+          <h3>شروع مکالمه</h3>
+          <p>پیام بفرستید. {{ remainingMessages() ?? 3 }} پیام رایگان دارید.</p>
         </div>
       } @else {
         @for (msg of messages(); track msg.id) {
@@ -30,15 +30,15 @@
     <div class="input-area">
       @if (needsPayment()) {
         <div class="quota-exceeded">
-          <p>You've used your free messages. Upgrade to continue.</p>
-          <button class="btn-upgrade" (click)="openPayment()">Upgrade</button>
+          <p>پیام‌های رایگان تمام شده. برای ادامه ارتقا دهید.</p>
+          <button class="btn-upgrade" (click)="openPayment()">ارتقا</button>
         </div>
       } @else {
         <form (ngSubmit)="send()" class="input-form">
           <input
             type="text"
             [formControl]="input"
-            placeholder="Type your message..."
+            placeholder="پیام خود را بنویسید..."
             [disabled]="sending()"
             (keydown.enter)="$event.preventDefault(); send()"
           />
@@ -46,7 +46,7 @@
             @if (sending()) {
               <span class="spinner-small"></span>
             } @else {
-              Send
+              ارسال
             }
           </button>
         </form>

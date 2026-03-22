@@ -15,13 +15,13 @@ export class DemoDataService {
   private auth = inject(AuthService);
 
   private chats: ChatWithMessages[] = [
-    this.makeChat('demo-chat-1', 'Sample conversation', [
-      { role: 'user' as const, content: 'What can you help me with?', order: 0 },
-      { role: 'assistant' as const, content: 'I can help answer questions, have conversations, and assist with various tasks. Try asking me anything!', order: 1 }
+    this.makeChat('demo-chat-1', 'نمونه مکالمه', [
+      { role: 'user' as const, content: 'چطور می‌توانی کمکم کنی؟', order: 0 },
+      { role: 'assistant' as const, content: 'می‌توانم به سوالات پاسخ دهم، مکالمه کنم و در کارهای مختلف کمک کنم. هر چیزی بپرس!', order: 1 }
     ]),
-    this.makeChat('demo-chat-2', 'Quick demo', [
-      { role: 'user' as const, content: 'Hello!', order: 0 },
-      { role: 'assistant' as const, content: 'Hi! How can I assist you today?', order: 1 }
+    this.makeChat('demo-chat-2', 'دمو سریع', [
+      { role: 'user' as const, content: 'سلام!', order: 0 },
+      { role: 'assistant' as const, content: 'سلام! امروز چطور می‌توانم کمکتان کنم؟', order: 1 }
     ])
   ];
 
@@ -70,7 +70,7 @@ export class DemoDataService {
   createChat(title?: string): Observable<ChatResponse> {
     const id = `demo-chat-${Date.now()}`;
     const newCount = this.chats.length + 1;
-    const defaultTitle = title ?? (newCount === 1 ? 'New Chat' : `Chat ${newCount}`);
+    const defaultTitle = title ?? (newCount === 1 ? 'چت جدید' : `چت ${newCount}`);
     const chat = this.makeChat(id, defaultTitle, []);
     this.chats.unshift(chat);
     return of({
@@ -88,7 +88,7 @@ export class DemoDataService {
   getChat(chatId: string): Observable<ChatWithMessages> {
     const chat = this.chats.find((c) => c.id === chatId);
     if (!chat) {
-      const empty = this.makeChat(chatId, 'New Chat', []);
+      const empty = this.makeChat(chatId, 'چت جدید', []);
       this.chats.unshift(empty);
       return of(empty).pipe(delay(200));
     }
@@ -131,7 +131,7 @@ export class DemoDataService {
       chat.is_deleted = false;
       return of(this.toChatResponse(chat)).pipe(delay(150));
     }
-    const newChat = this.makeChat(chatId, 'New Chat', []);
+    const newChat = this.makeChat(chatId, 'چت جدید', []);
     this.chats.unshift(newChat);
     return of(this.toChatResponse(newChat)).pipe(delay(150));
   }
@@ -139,7 +139,7 @@ export class DemoDataService {
   sendMessage(chatId: string, content: string): Observable<RAGQueryResponse> {
     let chat = this.chats.find((c) => c.id === chatId);
     if (!chat) {
-      chat = this.makeChat(chatId, 'New Chat', []);
+      chat = this.makeChat(chatId, 'چت جدید', []);
       this.chats.unshift(chat);
     }
     const now = new Date().toISOString();
@@ -155,7 +155,7 @@ export class DemoDataService {
       id: `msg-a-${Date.now()}`,
       chat_session_id: chatId,
       role: 'assistant',
-      content: 'This is a demo response. Connect to a real backend to get AI-powered replies.',
+      content: 'این پاسخ دمو است. به بک‌اند واقعی متصل شوید تا پاسخ هوش مصنوعی دریافت کنید.',
       order_index: chat.messages.length + 1,
       created_at: now
     };
