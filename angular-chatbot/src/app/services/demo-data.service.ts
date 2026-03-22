@@ -69,7 +69,9 @@ export class DemoDataService {
 
   createChat(title?: string): Observable<ChatResponse> {
     const id = `demo-chat-${Date.now()}`;
-    const chat = this.makeChat(id, title ?? 'New Chat', []);
+    const newCount = this.chats.length + 1;
+    const defaultTitle = title ?? (newCount === 1 ? 'New Chat' : `Chat ${newCount}`);
+    const chat = this.makeChat(id, defaultTitle, []);
     this.chats.unshift(chat);
     return of({
       id: chat.id,

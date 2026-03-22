@@ -1,6 +1,7 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
@@ -13,10 +14,11 @@ import { FREE_MESSAGE_LIMIT } from '../../../constants/payment';
   templateUrl: './chat-layout.component.html',
   styleUrl: './chat-layout.component.scss'
 })
-export class ChatLayoutComponent {
+export class ChatLayoutComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private chat = inject(ChatService);
   private router = inject(Router);
+  private navSub?: Subscription;
 
   showPaymentModal = signal(false);
   sidebarOpen = signal(true);
@@ -35,15 +37,28 @@ export class ChatLayoutComponent {
     return r !== null ? Math.max(0, r) : FREE_MESSAGE_LIMIT;
   });
 
-  constructor() {
+  ngOnInit(): void {
     this.loadChats();
+    this.navSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => this.loadChats());
+  }
+
+  ngOnDestroy(): void {
+    this.navSub?.unsubscribe();
   }
 
   loadChats(): void {
     this.loadingChats.set(true);
     this.chat.listChats(0, 50).subscribe({
       next: (res) => {
-        this.chats.set(res.chats.filter((c) => !c.is_deleted));
+        const seen = new Set<string>();
+        const unique = res.chats.filter((c) => {
+          if (c.is_deleted || seen.has(c.id)) return false;
+          seen.add(c.id);
+          return true;
+        });
+        this.chats.set(unique);
         this.loadingChats.set(false);
       },
       error: () => this.loadingChats.set(false)
