@@ -130,7 +130,7 @@ jobs:
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           else
-            echo "tag=v$(node -p "require('./angular-chatbot/package.json').version)" >> $GITHUB_OUTPUT
+            echo "tag=v$(node -p 'require(\"./angular-chatbot/package.json\").version')" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload APK artifact
