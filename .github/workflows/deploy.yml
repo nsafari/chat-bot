@@ -38,7 +38,7 @@ jobs:
 
       - name: Build
         env:
-          API_URL: ${{ vars.API_URL || '' }}
+          API_URL: ${{ vars.API_URL || 'https://tabyin.net/AI/proxy.php' }}
         run: |
           cd angular-chatbot
           if [ -n "$API_URL" ]; then
@@ -59,7 +59,7 @@ jobs:
 
       - name: Write config.json
         env:
-          API_URL: ${{ vars.API_URL || '' }}
+          API_URL: ${{ vars.API_URL || 'https://tabyin.net/AI/proxy.php' }}
         run: |
           cd angular-chatbot/dist/angular-chatbot/browser
           echo '{"apiUrl":"'"$API_URL"'"}' > config.json
