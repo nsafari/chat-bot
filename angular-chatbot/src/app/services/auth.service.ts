@@ -18,10 +18,6 @@ const TOKEN_KEY = 'access_token';
 const REFRESH_KEY = 'refresh_token';
 const USER_KEY = 'user';
 
-/** Demo credentials to try the UI without a backend: demo / demo123 */
-export const DEMO_CREDENTIALS = { login: 'demo', password: 'demo123' };
-const DEMO_TOKEN = 'demo';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private get apiUrl(): string {
@@ -42,20 +38,7 @@ export class AuthService {
   ) {
     const token = this.tokenSignal();
     if (token) {
-      if (token === DEMO_TOKEN) {
-        const stored = localStorage.getItem(USER_KEY);
-        if (stored) {
-          try {
-            this.userSignal.set(JSON.parse(stored));
-          } catch {
-            this.demoLogin();
-          }
-        } else {
-          this.demoLogin();
-        }
-      } else {
-        this.loadUser().subscribe();
-      }
+      this.loadUser().subscribe();
     }
   }
 
@@ -80,10 +63,6 @@ export class AuthService {
   }
 
   logout(): Observable<unknown> {
-    if (this.isDemoMode()) {
-      this.clearAuth();
-      return of(null);
-    }
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth()),
       catchError(() => {
@@ -91,37 +70,6 @@ export class AuthService {
         return of(null);
       })
     );
-  }
-
-  /** Demo login – bypasses API, lets you explore the UI without a backend */
-  demoLogin(): void {
-    const mockUser: UserResponse = {
-      username: 'demo',
-      email: 'demo@example.com',
-      full_name: 'Demo User',
-      remaining_messages: 3,
-      is_admin: false,
-      created_at: new Date().toISOString()
-    };
-    localStorage.setItem(TOKEN_KEY, DEMO_TOKEN);
-    localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
-    localStorage.removeItem(REFRESH_KEY);
-    this.tokenSignal.set(DEMO_TOKEN);
-    this.userSignal.set(mockUser);
-  }
-
-  isDemoMode(): boolean {
-    return this.getAccessToken() === DEMO_TOKEN;
-  }
-
-  /** Demo mode: update remaining messages (for mock send) */
-  setRemainingMessages(n: number): void {
-    const u = this.userSignal();
-    if (u) {
-      const updated = { ...u, remaining_messages: n };
-      this.userSignal.set(updated);
-      localStorage.setItem(USER_KEY, JSON.stringify(updated));
-    }
   }
 
   refreshToken(): Observable<Token> {
