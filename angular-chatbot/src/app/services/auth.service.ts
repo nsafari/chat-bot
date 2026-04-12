@@ -2,17 +2,21 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { environment } from '../../environments/environment';
-import type { UserCreate, UserLogin, Token, UserResponse } from '../models/auth.models';
+import type {
+  UserCreate,
+  UserLogin,
+  Token,
+  UserResponse,
+  OTPRequestBody,
+  OTPRequestResponse,
+  OTPVerifyBody,
+  OTPVerifyResponse
+} from '../models/auth.models';
 import { ApiConfigService } from './api-config.service';
 
 const TOKEN_KEY = 'access_token';
 const REFRESH_KEY = 'refresh_token';
 const USER_KEY = 'user';
-
-/** Demo credentials to try the UI without a backend: demo / demo123 */
-export const DEMO_CREDENTIALS = { login: 'demo', password: 'demo123' };
-const DEMO_TOKEN = 'demo';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -34,20 +38,7 @@ export class AuthService {
   ) {
     const token = this.tokenSignal();
     if (token) {
-      if (token === DEMO_TOKEN) {
-        const stored = localStorage.getItem(USER_KEY);
-        if (stored) {
-          try {
-            this.userSignal.set(JSON.parse(stored));
-          } catch {
-            this.demoLogin();
-          }
-        } else {
-          this.demoLogin();
-        }
-      } else {
-        this.loadUser().subscribe();
-      }
+      this.loadUser().subscribe();
     }
   }
 
@@ -57,6 +48,14 @@ export class AuthService {
     );
   }
 
+  requestOtp(data: OTPRequestBody): Observable<OTPRequestResponse> {
+    return this.http.post<OTPRequestResponse>(`${this.apiUrl}/otp/request`, data);
+  }
+
+  verifyOtp(data: OTPVerifyBody): Observable<OTPVerifyResponse> {
+    return this.http.post<OTPVerifyResponse>(`${this.apiUrl}/otp/verify`, data);
+  }
+
   login(data: UserLogin): Observable<Token> {
     return this.http.post<Token>(`${this.apiUrl}/login`, data).pipe(
       tap((res) => this.handleAuthSuccess(res))
@@ -64,10 +63,6 @@ export class AuthService {
   }
 
   logout(): Observable<unknown> {
-    if (this.isDemoMode()) {
-      this.clearAuth();
-      return of(null);
-    }
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth()),
       catchError(() => {
@@ -75,37 +70,6 @@ export class AuthService {
         return of(null);
       })
     );
-  }
-
-  /** Demo login – bypasses API, lets you explore the UI without a backend */
-  demoLogin(): void {
-    const mockUser: UserResponse = {
-      username: 'demo',
-      email: 'demo@example.com',
-      full_name: 'Demo User',
-      remaining_messages_today: 3,
-      is_admin: false,
-      created_at: new Date().toISOString()
-    };
-    localStorage.setItem(TOKEN_KEY, DEMO_TOKEN);
-    localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
-    localStorage.removeItem(REFRESH_KEY);
-    this.tokenSignal.set(DEMO_TOKEN);
-    this.userSignal.set(mockUser);
-  }
-
-  isDemoMode(): boolean {
-    return this.getAccessToken() === DEMO_TOKEN;
-  }
-
-  /** Demo mode: update remaining messages (for mock send) */
-  setRemainingMessages(n: number): void {
-    const u = this.userSignal();
-    if (u) {
-      const updated = { ...u, remaining_messages_today: n };
-      this.userSignal.set(updated);
-      localStorage.setItem(USER_KEY, JSON.stringify(updated));
-    }
   }
 
   refreshToken(): Observable<Token> {
@@ -145,7 +109,7 @@ export class AuthService {
   }
 
   getRemainingMessages(): number | null {
-    return this.userSignal()?.remaining_messages_today ?? null;
+    return this.userSignal()?.remaining_messages ?? this.userSignal()?.remaining_messages_today ?? null;
   }
 
   private handleAuthSuccess(res: Token): void {

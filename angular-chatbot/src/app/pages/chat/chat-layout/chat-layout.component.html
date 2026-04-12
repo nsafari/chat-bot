@@ -1,31 +1,6 @@
 @if (sidebarOpen()) {
   <div class="sidebar-overlay" (click)="toggleSidebar()" aria-hidden="true"></div>
 }
-@if (isDemoMode()) {
-  <div class="demo-banner">
-    <div class="demo-text">
-      حالت دمو – با داده نمونه امتحان کنید. برای پاسخ واقعی هوش مصنوعی به بک‌اند متصل شوید.
-    </div>
-    <form class="demo-api-settings" (ngSubmit)="saveDemoApiUrl()">
-      <input
-        type="url"
-        name="demoApiUrl"
-        class="demo-api-input"
-        [ngModel]="demoApiUrlInput()"
-        (ngModelChange)="updateDemoApiUrlInput($event)"
-        placeholder="https://tabyin.net/AI/proxy.php"
-        aria-label="Demo API URL"
-      />
-      <button type="submit" class="btn-demo-api">ذخیره</button>
-      <button type="button" class="btn-demo-api" (click)="resetDemoApiUrl()">بازنشانی</button>
-    </form>
-    @if (demoApiUrlMessage()) {
-      <div class="demo-api-feedback" [class.error]="demoApiUrlMessageType() === 'error'">
-        {{ demoApiUrlMessage() }}
-      </div>
-    }
-  </div>
-}
 <div class="chat-layout">
   <aside class="sidebar" [class.open]="sidebarOpen()">
     <div class="sidebar-header">

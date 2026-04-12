@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, DEMO_CREDENTIALS } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
 import { getErrorMessage } from '../../utils/error';
 
 @Component({
@@ -31,11 +31,6 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.form.invalid || this.loading) return;
     const { login, password } = this.form.getRawValue();
-    if (login === DEMO_CREDENTIALS.login && password === DEMO_CREDENTIALS.password) {
-      this.auth.demoLogin();
-      this.router.navigate(['/chat']);
-      return;
-    }
     this.loading = true;
     this.error = '';
     this.auth.login({ login, password }).subscribe({
@@ -55,6 +50,4 @@ export class LoginComponent {
   get githubLoginUrl(): string {
     return this.auth.getGithubLoginUrl();
   }
-
-  protected readonly DEMO_CREDENTIALS = DEMO_CREDENTIALS;
 }

@@ -35,7 +35,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   input = new FormControl('', { nonNullable: true });
 
-  remainingMessages = computed(() => this.auth.user()?.remaining_messages_today ?? null);
+  remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   canSend = computed(() => {
     const r = this.remainingMessages();
     if (r === null) return true;
@@ -106,15 +106,13 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
           res.assistant_message
         ]);
         this.scrollToBottom();
-        if (!this.auth.isDemoMode()) this.auth.loadUser().subscribe();
+        this.auth.loadUser().subscribe();
         this.sending.set(false);
       },
       error: (err) => {
         this.sending.set(false);
         this.input.setValue(text);
-        if (this.auth.isDemoMode()) {
-          this.error.set('حالت دمو – برای ارسال پیام به بک‌اند متصل شوید.');
-        } else if (err.status === 402 || err.error?.detail?.includes?.('quota')) {
+        if (err.status === 402 || err.error?.detail?.includes?.('quota')) {
           this.showPaymentModal.set(true);
         } else {
           this.error.set(err.error?.detail ?? 'Failed to send message');
@@ -129,9 +127,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   closePayment(): void {
     this.showPaymentModal.set(false);
-    if (!this.auth.isDemoMode()) {
-      this.auth.loadUser().subscribe();
-    }
+    this.auth.loadUser().subscribe();
   }
 
   formatTime(iso: string): string {
