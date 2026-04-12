@@ -45,7 +45,9 @@ export interface RAGQueryResponse {
   user_message: MessageResponse;
   assistant_message: MessageResponse;
   processing_time_ms: number;
-  quota_remaining: number;
+  credits_remaining?: number | null;
+  /** Backward compatibility for older backend responses */
+  quota_remaining?: number;
 }
 
 export interface ChatWithMessages extends ChatResponse {

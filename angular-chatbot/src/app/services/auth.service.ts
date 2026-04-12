@@ -2,8 +2,16 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { environment } from '../../environments/environment';
-import type { UserCreate, UserLogin, Token, UserResponse } from '../models/auth.models';
+import type {
+  UserCreate,
+  UserLogin,
+  Token,
+  UserResponse,
+  OTPRequestBody,
+  OTPRequestResponse,
+  OTPVerifyBody,
+  OTPVerifyResponse
+} from '../models/auth.models';
 import { ApiConfigService } from './api-config.service';
 
 const TOKEN_KEY = 'access_token';
@@ -57,6 +65,14 @@ export class AuthService {
     );
   }
 
+  requestOtp(data: OTPRequestBody): Observable<OTPRequestResponse> {
+    return this.http.post<OTPRequestResponse>(`${this.apiUrl}/otp/request`, data);
+  }
+
+  verifyOtp(data: OTPVerifyBody): Observable<OTPVerifyResponse> {
+    return this.http.post<OTPVerifyResponse>(`${this.apiUrl}/otp/verify`, data);
+  }
+
   login(data: UserLogin): Observable<Token> {
     return this.http.post<Token>(`${this.apiUrl}/login`, data).pipe(
       tap((res) => this.handleAuthSuccess(res))
@@ -83,7 +99,7 @@ export class AuthService {
       username: 'demo',
       email: 'demo@example.com',
       full_name: 'Demo User',
-      remaining_messages_today: 3,
+      remaining_messages: 3,
       is_admin: false,
       created_at: new Date().toISOString()
     };
@@ -102,7 +118,7 @@ export class AuthService {
   setRemainingMessages(n: number): void {
     const u = this.userSignal();
     if (u) {
-      const updated = { ...u, remaining_messages_today: n };
+      const updated = { ...u, remaining_messages: n };
       this.userSignal.set(updated);
       localStorage.setItem(USER_KEY, JSON.stringify(updated));
     }
@@ -145,7 +161,7 @@ export class AuthService {
   }
 
   getRemainingMessages(): number | null {
-    return this.userSignal()?.remaining_messages_today ?? null;
+    return this.userSignal()?.remaining_messages ?? this.userSignal()?.remaining_messages_today ?? null;
   }
 
   private handleAuthSuccess(res: Token): void {

@@ -164,7 +164,7 @@ export class DemoDataService {
     chat.last_message_at = now;
     chat.updated_at = now;
 
-    const remaining = (this.auth.user()?.remaining_messages_today ?? 3) - 1;
+    const remaining = (this.auth.user()?.remaining_messages ?? 3) - 1;
     this.auth.setRemainingMessages(remaining);
 
     return of({
@@ -173,7 +173,7 @@ export class DemoDataService {
       user_message: userMsg,
       assistant_message: assistMsg,
       processing_time_ms: 150,
-      quota_remaining: Math.max(0, remaining)
+      credits_remaining: Math.max(0, remaining)
     }).pipe(delay(400));
   }
 }

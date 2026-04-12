@@ -35,7 +35,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   input = new FormControl('', { nonNullable: true });
 
-  remainingMessages = computed(() => this.auth.user()?.remaining_messages_today ?? null);
+  remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   canSend = computed(() => {
     const r = this.remainingMessages();
     if (r === null) return true;

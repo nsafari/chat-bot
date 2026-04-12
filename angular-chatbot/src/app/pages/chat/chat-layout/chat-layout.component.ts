@@ -33,7 +33,7 @@ export class ChatLayoutComponent implements OnInit, OnDestroy {
   chats = signal<Array<{ id: string; title: string; message_count?: number }>>([]);
   loadingChats = signal(true);
 
-  remainingMessages = computed(() => this.auth.user()?.remaining_messages_today ?? null);
+  remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   needsPayment = computed(() => {
     const r = this.remainingMessages();
     return r !== null && r <= 0;
