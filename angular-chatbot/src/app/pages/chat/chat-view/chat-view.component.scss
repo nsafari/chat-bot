@@ -138,12 +138,49 @@
   border-radius: 1rem;
   max-width: 100%;
 
-  p {
+  .message-content {
     margin: 0 0 0.25rem;
     font-size: 0.95rem;
     line-height: 1.5;
-    white-space: pre-wrap;
     word-break: break-word;
+
+    :last-child {
+      margin-bottom: 0;
+    }
+
+    :where(p, ul, ol, pre, blockquote, h1, h2, h3, h4, h5, h6) {
+      margin: 0 0 0.5rem;
+    }
+
+    :where(ul, ol) {
+      padding-inline-start: 1.25rem;
+    }
+
+    :where(code) {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.85em;
+      background: rgba(15, 23, 42, 0.2);
+      border-radius: 0.25rem;
+      padding: 0.1rem 0.3rem;
+    }
+
+    :where(pre) {
+      overflow-x: auto;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.75rem;
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    :where(pre code) {
+      background: transparent;
+      padding: 0;
+    }
+
+    :where(a) {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
   }
 }
 

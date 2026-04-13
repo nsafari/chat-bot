@@ -15,7 +15,11 @@
         @for (msg of messages(); track msg.id) {
           <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
             <div class="bubble">
-              <p>{{ msg.content }}</p>
+              @if (msg.role === 'assistant') {
+                <div class="message-content markdown-content" [innerHTML]="msg.content | markdown"></div>
+              } @else {
+                <p class="message-content">{{ msg.content }}</p>
+              }
               <span class="time">{{ formatTime(msg.created_at) }}</span>
             </div>
           </div>
