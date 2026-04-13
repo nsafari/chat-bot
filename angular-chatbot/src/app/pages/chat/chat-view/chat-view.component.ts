@@ -5,6 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ChatService } from '../../../services/chat.service';
 import { AuthService } from '../../../services/auth.service';
 import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
+import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 import type { MessageResponse } from '../../../models/chat.models';
 import { FREE_MESSAGE_LIMIT } from '../../../constants/payment';
 import { Subscription } from 'rxjs';
@@ -12,7 +13,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-chat-view',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaymentModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, PaymentModalComponent, MarkdownPipe],
   templateUrl: './chat-view.component.html',
   styleUrl: './chat-view.component.scss'
 })
