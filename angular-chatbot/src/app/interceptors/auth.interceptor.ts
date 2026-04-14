@@ -8,9 +8,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const token = auth.getAccessToken();
+  const isPublicAuthRequest = /\/api\/v1\/auth\/(login|register|otp\/request|otp\/verify|refresh)(\/|$)/.test(req.url);
 
   let authReq = req;
-  if (token) {
+  if (!isPublicAuthRequest && token) {
     authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
@@ -22,6 +23,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return auth.refreshToken().pipe(
           switchMap(() => {
             const newToken = auth.getAccessToken();
+            if (!newToken) {
+              router.navigate(['/login']);
+              return throwError(() => err);
+            }
             const retryReq = req.clone({
               setHeaders: { Authorization: `Bearer ${newToken}` }
             });
