@@ -135,6 +135,18 @@ export class AuthService {
   }
 
   private getStoredToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      return null;
+    }
+
+    // Legacy demo-mode token can leak into real requests.
+    if (token.trim().toLowerCase() === 'demo') {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_KEY);
+      return null;
+    }
+
+    return token;
   }
 }
