@@ -31,41 +31,43 @@
         }
       </button>
 
-      <div class="field" [formGroup]="otpForm">
-        <label for="otp_code">کد تایید</label>
-        <div class="otp-row">
-          <input
-            id="otp_code"
-            type="text"
-            formControlName="code"
-            placeholder="کد 4 تا 8 رقمی"
-            inputmode="numeric"
-          />
-          <button type="button" class="btn-verify" [disabled]="verifyingOtp" (click)="verifyOtp()">
-            {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
-          </button>
+      @if (otpRequested) {
+        <div class="field" [formGroup]="otpForm">
+          <label for="otp_code">کد تایید</label>
+          <div class="otp-row">
+            <input
+              id="otp_code"
+              type="text"
+              formControlName="code"
+              placeholder="کد 4 تا 8 رقمی"
+              inputmode="numeric"
+            />
+            <button type="button" class="btn-verify" [disabled]="verifyingOtp" (click)="verifyOtp()">
+              {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
+            </button>
+          </div>
+          @if (otpVerified) {
+            <span class="success-text">شماره موبایل تایید شد.</span>
+          } @else {
+            <span class="hint">ابتدا کد تایید را ارسال و تایید کنید</span>
+          }
         </div>
-        @if (otpVerified) {
-          <span class="success-text">شماره موبایل تایید شد.</span>
-        } @else {
-          <span class="hint">ابتدا کد تایید را ارسال و تایید کنید</span>
-        }
-      </div>
 
-      <div class="field">
-        <label for="password">رمز عبور</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="••••••••"
-          autocomplete="new-password"
-        />
-        <span class="hint">حداقل ۶ کاراکتر</span>
-      </div>
-      <button type="submit" class="btn-primary" [disabled]="loading || !otpVerified">
-        {{ loading ? 'در حال ایجاد...' : 'ایجاد حساب' }}
-      </button>
+        <div class="field">
+          <label for="password">رمز عبور</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <span class="hint">حداقل ۶ کاراکتر</span>
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="loading || !otpVerified">
+          {{ loading ? 'در حال ایجاد...' : 'ایجاد حساب' }}
+        </button>
+      }
     </form>
 
     <div class="divider">
