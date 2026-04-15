@@ -20,6 +20,7 @@ export class RegisterComponent implements OnDestroy {
   verifyingOtp = false;
   error = '';
   otpMessage = '';
+  otpRequested = false;
   otpVerified = false;
   private otpProof: string | null = null;
 
@@ -36,8 +37,10 @@ export class RegisterComponent implements OnDestroy {
       code: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]]
     });
     this.form.get('phone_number')?.valueChanges.subscribe(() => {
+      this.otpRequested = false;
       this.otpVerified = false;
       this.otpProof = null;
+      this.otpForm.reset();
     });
   }
 
@@ -59,6 +62,7 @@ export class RegisterComponent implements OnDestroy {
     this.auth.requestOtp({ phone_number: normalizedPhone, purpose: 'register' }).subscribe({
       next: (res) => {
         this.otpMessage = res.message;
+        this.otpRequested = true;
       },
       error: (err) => {
         this.error = getErrorMessage(err);
