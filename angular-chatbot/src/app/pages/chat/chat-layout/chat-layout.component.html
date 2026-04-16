@@ -2,7 +2,7 @@
   <div class="sidebar-overlay" (click)="toggleSidebar()" aria-hidden="true"></div>
 }
 <div class="chat-layout">
-  <aside class="sidebar" [class.open]="sidebarOpen()">
+  <aside class="sidebar" [class.open]="sidebarOpen()" [class.collapsed]="!sidebarOpen()">
     <div class="sidebar-header">
       <button class="btn-icon" (click)="toggleSidebar()" aria-label="منوی کناری">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -39,11 +39,18 @@
             [routerLink]="['/chat', c.id]"
             routerLinkActive="active"
             class="chat-item"
+            (click)="closeSidebarOnMobile()"
           >
             <span class="chat-title">{{ c.title || 'چت جدید' }}</span>
-            @if (c.message_count !== undefined && c.message_count > 0) {
-              <span class="chat-count">{{ c.message_count }}</span>
-            }
+            <button
+              type="button"
+              class="chat-delete"
+              (click)="deleteChat(c.id, $event)"
+              aria-label="حذف چت"
+              title="حذف چت"
+            >
+              ×
+            </button>
           </a>
         }
       }
@@ -55,6 +62,16 @@
     </div>
   </aside>
   <main class="main">
+    <div class="topbar">
+      <button class="btn-icon topbar-toggle" (click)="toggleSidebar()" aria-label="نمایش یا پنهان‌سازی پنل">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <span class="topbar-title">گفتگو</span>
+    </div>
     <router-outlet />
   </main>
 </div>
