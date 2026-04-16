@@ -5,6 +5,7 @@ import { RegisterComponent } from './pages/register/register.component';
 import { ChatLayoutComponent } from './pages/chat/chat-layout/chat-layout.component';
 import { ChatHomeComponent } from './pages/chat/chat-home/chat-home.component';
 import { ChatViewComponent } from './pages/chat/chat-view/chat-view.component';
+import { AccountComponent } from './pages/account/account.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/chat', pathMatch: 'full' },
@@ -16,6 +17,7 @@ export const routes: Routes = [
     component: ChatLayoutComponent,
     children: [
       { path: '', component: ChatHomeComponent },
+      { path: 'account', component: AccountComponent },
       { path: ':id', component: ChatViewComponent }
     ]
   },

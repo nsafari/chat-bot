@@ -47,6 +47,36 @@ export interface OTPVerifyResponse {
   proof_expires_in_seconds: number;
 }
 
+export interface EmailChangeRequest {
+  new_email: string;
+  password: string;
+}
+
+export interface EmailChangeResponse {
+  message: string;
+  new_email: string;
+  is_verified: boolean;
+}
+
+export interface PhoneChangeRequest {
+  new_phone_number: string;
+  otp_proof: string;
+}
+
+export interface PhoneChangeResponse {
+  message: string;
+  new_phone_number: string;
+}
+
+export interface PasswordChangeRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface PasswordChangeResponse {
+  message: string;
+}
+
 export interface UserResponse {
   id?: string | null;
   email?: string | null;

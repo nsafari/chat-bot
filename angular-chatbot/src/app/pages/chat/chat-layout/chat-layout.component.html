@@ -19,6 +19,11 @@
       چت جدید
     </button>
 
+    <div class="sidebar-actions">
+      <a routerLink="/chat/account" class="btn-account" (click)="closeSidebarOnMobile()">اکانت</a>
+      <button type="button" class="btn-wallet" (click)="openPayment()">شارژ کیف پول</button>
+    </div>
+
     <div class="quota-bar" *ngIf="remainingMessages() !== null">
       <span class="quota-label">
         {{ freeMessagesLeft() }} پیام رایگان باقی‌مانده
@@ -71,6 +76,10 @@
         </svg>
       </button>
       <span class="topbar-title">گفتگو</span>
+      <div class="topbar-actions">
+        <a routerLink="/chat/account" class="topbar-link">اکانت</a>
+        <button type="button" class="topbar-link" (click)="openPayment()">شارژ</button>
+      </div>
     </div>
     <router-outlet />
   </main>

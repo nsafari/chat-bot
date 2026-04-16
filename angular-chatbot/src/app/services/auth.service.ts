@@ -10,7 +10,13 @@ import type {
   OTPRequestBody,
   OTPRequestResponse,
   OTPVerifyBody,
-  OTPVerifyResponse
+  OTPVerifyResponse,
+  EmailChangeRequest,
+  EmailChangeResponse,
+  PhoneChangeRequest,
+  PhoneChangeResponse,
+  PasswordChangeRequest,
+  PasswordChangeResponse
 } from '../models/auth.models';
 import { ApiConfigService } from './api-config.service';
 
@@ -54,6 +60,22 @@ export class AuthService {
 
   verifyOtp(data: OTPVerifyBody): Observable<OTPVerifyResponse> {
     return this.http.post<OTPVerifyResponse>(`${this.apiUrl}/otp/verify`, data);
+  }
+
+  changeEmail(data: EmailChangeRequest): Observable<EmailChangeResponse> {
+    return this.http.put<EmailChangeResponse>(`${this.apiUrl}/me/change_email`, data).pipe(
+      tap(() => this.loadUser().subscribe())
+    );
+  }
+
+  changePhone(data: PhoneChangeRequest): Observable<PhoneChangeResponse> {
+    return this.http.put<PhoneChangeResponse>(`${this.apiUrl}/me/change_phone`, data).pipe(
+      tap(() => this.loadUser().subscribe())
+    );
+  }
+
+  changePassword(data: PasswordChangeRequest): Observable<PasswordChangeResponse> {
+    return this.http.put<PasswordChangeResponse>(`${this.apiUrl}/me/reset-password`, data);
   }
 
   login(data: UserLogin): Observable<Token> {
