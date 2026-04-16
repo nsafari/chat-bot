@@ -112,6 +112,20 @@ export class AuthService {
     return this.userSignal()?.remaining_messages ?? this.userSignal()?.remaining_messages_today ?? null;
   }
 
+  updateRemainingMessages(remaining: number | null | undefined): void {
+    if (remaining === undefined) return;
+    const current = this.userSignal();
+    if (!current) return;
+    const normalized = remaining ?? null;
+    const updated: UserResponse = {
+      ...current,
+      remaining_messages: normalized,
+      remaining_messages_today: normalized
+    };
+    this.userSignal.set(updated);
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+  }
+
   private handleAuthSuccess(res: Token): void {
     localStorage.setItem(TOKEN_KEY, res.access_token);
     localStorage.setItem(REFRESH_KEY, res.refresh_token);

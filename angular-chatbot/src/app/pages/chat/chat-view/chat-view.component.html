@@ -15,6 +15,9 @@
         @for (msg of messages(); track msg.id) {
           <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
             <div class="bubble">
+              @if (msg.role === 'assistant' && msg.metadata?.['streaming']) {
+                <span class="typing-indicator" aria-hidden="true"></span>
+              }
               @if (msg.role === 'assistant') {
                 <div class="message-content markdown-content" [innerHTML]="msg.content | markdown"></div>
               } @else {
@@ -46,7 +49,7 @@
             [disabled]="sending()"
             (keydown.enter)="$event.preventDefault(); send()"
           />
-          <button type="submit" class="btn-send" [disabled]="sending() || !input.value.trim()">
+          <button type="submit" class="btn-send" [disabled]="!input.value.trim()">
             @if (sending()) {
               <span class="spinner-small"></span>
             } @else {

@@ -48,9 +48,33 @@
   animation: spin 0.8s linear infinite;
 }
 
+.typing-indicator {
+  display: inline-flex;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: dotBlink 1s infinite;
+  margin-inline-end: 0.35rem;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes dotBlink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-0.08rem);
   }
 }
 
