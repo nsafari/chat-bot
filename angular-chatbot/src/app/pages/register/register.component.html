@@ -64,6 +64,9 @@
           />
           <span class="hint">حداقل ۶ کاراکتر</span>
         </div>
+        <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="restartOtpFlow()">
+          ارسال مجدد کد
+        </button>
         <button type="submit" class="btn-primary" [disabled]="loading || !otpVerified">
           {{ loading ? 'در حال ایجاد...' : 'ایجاد حساب' }}
         </button>

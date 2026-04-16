@@ -5,6 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { getErrorMessage } from '../../utils/error';
 
+const PHONE_REGEX = /^(09\d{9}|\+989\d{9}|989\d{9})$/;
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -30,17 +32,14 @@ export class RegisterComponent implements OnDestroy {
     private router: Router
   ) {
     this.form = this.fb.nonNullable.group({
-      phone_number: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
+      phone_number: ['', [Validators.required, Validators.pattern(PHONE_REGEX)]],
       password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]]
     });
     this.otpForm = this.fb.nonNullable.group({
       code: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]]
     });
     this.form.get('phone_number')?.valueChanges.subscribe(() => {
-      this.otpRequested = false;
-      this.otpVerified = false;
-      this.otpProof = null;
-      this.otpForm.reset();
+      this.resetOtpState();
     });
   }
 
@@ -51,8 +50,8 @@ export class RegisterComponent implements OnDestroy {
   requestOtp(): void {
     if (this.otpLoading) return;
     const phone = this.form.get('phone_number')?.value?.trim() ?? '';
-    if (!/^09\d{9}$/.test(phone)) {
-      this.error = 'شماره موبایل باید با 09 شروع شود و 11 رقم باشد.';
+    if (!PHONE_REGEX.test(phone)) {
+      this.error = 'شماره موبایل معتبر نیست. قالب مجاز: 09xxxxxxxxx یا +989xxxxxxxxx یا 989xxxxxxxxx';
       return;
     }
     this.otpLoading = true;
@@ -63,8 +62,12 @@ export class RegisterComponent implements OnDestroy {
       next: (res) => {
         this.otpMessage = res.message;
         this.otpRequested = true;
+        this.otpVerified = false;
+        this.otpProof = null;
+        this.otpForm.reset();
       },
       error: (err) => {
+        this.resetOtpState();
         this.error = getErrorMessage(err);
       },
       complete: () => {
@@ -76,7 +79,7 @@ export class RegisterComponent implements OnDestroy {
   verifyOtp(): void {
     if (this.verifyingOtp || this.otpForm.invalid) return;
     const phone = this.form.get('phone_number')?.value?.trim() ?? '';
-    if (!/^09\d{9}$/.test(phone)) {
+    if (!PHONE_REGEX.test(phone)) {
       this.error = 'شماره موبایل معتبر نیست.';
       return;
     }
@@ -100,6 +103,7 @@ export class RegisterComponent implements OnDestroy {
           this.otpProof = null;
           this.otpVerified = false;
           this.error = getErrorMessage(err);
+          this.otpMessage = 'در تایید کد خطا رخ داد. در صورت نیاز کد را دوباره ارسال کنید.';
         },
         complete: () => {
           this.verifyingOtp = false;
@@ -128,13 +132,35 @@ export class RegisterComponent implements OnDestroy {
         error: (err) => {
           this.loading = false;
           this.error = getErrorMessage(err);
+          this.otpMessage = 'ثبت‌نام ناموفق بود. لطفاً دوباره کد تایید دریافت کنید.';
+          this.resetOtpState();
         },
         complete: () => (this.loading = false)
       });
   }
 
+  restartOtpFlow(): void {
+    this.resetOtpState();
+    this.error = '';
+    this.otpMessage = '';
+  }
+
+  private resetOtpState(): void {
+    this.otpRequested = false;
+    this.otpVerified = false;
+    this.otpProof = null;
+    this.otpForm.reset();
+  }
+
   private normalizePhone(phone: string): string {
-    return phone.startsWith('0') ? phone.slice(1) : phone;
+    const compact = phone.replace(/\s+/g, '');
+    if (compact.startsWith('+989')) {
+      return compact.slice(1);
+    }
+    if (compact.startsWith('09')) {
+      return `98${compact.slice(1)}`;
+    }
+    return compact;
   }
 
   get googleLoginUrl(): string {
