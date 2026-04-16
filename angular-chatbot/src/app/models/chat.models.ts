@@ -46,6 +46,8 @@ export interface RAGQueryResponse {
   assistant_message: MessageResponse;
   processing_time_ms: number;
   credits_remaining?: number | null;
+  /** Backward compatibility for legacy typo responses */
+  credit_remaining?: number | null;
   /** Backward compatibility for older backend responses */
   quota_remaining?: number;
 }
