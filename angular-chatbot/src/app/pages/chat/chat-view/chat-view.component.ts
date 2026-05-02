@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ChatService } from '../../../services/chat.service';
 import { AuthService } from '../../../services/auth.service';
+import { UiPreferencesService } from '../../../services/ui-preferences.service';
 import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
 import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 import type { MessageResponse } from '../../../models/chat.models';
@@ -24,6 +25,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   private router = inject(Router);
   private chat = inject(ChatService);
   private auth = inject(AuthService);
+  private uiPreferences = inject(UiPreferencesService);
   private sub?: Subscription;
   private scrollPending = false;
   private shouldStickToBottom = true;
@@ -39,6 +41,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   sending = signal(false);
   error = signal('');
   showPaymentModal = signal(false);
+  chatFontSize = this.uiPreferences.chatFontSize;
 
   input = new FormControl('', { nonNullable: true });
 

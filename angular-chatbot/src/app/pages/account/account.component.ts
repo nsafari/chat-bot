@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../utils/error';
 import type { WalletResponse } from '../../models/payment.models';
 import type { PricingResponse } from '../../models/credits.models';
 import { PaymentModalComponent } from '../../components/payment-modal/payment-modal.component';
+import { UiPreferencesService } from '../../services/ui-preferences.service';
 
 const PHONE_REGEX = /^(09\d{9}|\+989\d{9}|989\d{9})$/;
 
@@ -22,11 +23,13 @@ export class AccountComponent implements OnInit {
   private auth = inject(AuthService);
   private payment = inject(PaymentService);
   private credits = inject(CreditsService);
+  private uiPreferences = inject(UiPreferencesService);
   private fb = inject(FormBuilder);
 
   user = this.auth.user;
   remainingMessages = computed(() => this.auth.getRemainingMessages());
-  activeSection = signal<'general' | 'credits' | 'email' | 'phone' | 'password'>('general');
+  activeSection = signal<'general' | 'appearance' | 'credits' | 'email' | 'phone' | 'password'>('general');
+  chatFontSize = this.uiPreferences.chatFontSize;
 
   loadingUser = signal(true);
   walletLoading = signal(true);
@@ -93,8 +96,17 @@ export class AccountComponent implements OnInit {
     this.loadPricing();
   }
 
-  setSection(section: 'general' | 'credits' | 'email' | 'phone' | 'password'): void {
+  setSection(section: 'general' | 'appearance' | 'credits' | 'email' | 'phone' | 'password'): void {
     this.activeSection.set(section);
+  }
+
+  setChatFontSize(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.uiPreferences.setChatFontSize(Number(input.value));
+  }
+
+  resetChatFontSize(): void {
+    this.uiPreferences.resetChatFontSize();
   }
 
   loadUser(): void {

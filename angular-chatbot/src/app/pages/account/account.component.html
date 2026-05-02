@@ -7,6 +7,7 @@
       </div>
       <button type="button" [class.active]="activeSection() === 'general'" (click)="setSection('general')">عمومی</button>
       <button type="button" [class.active]="activeSection() === 'credits'" (click)="setSection('credits')">خرید credit</button>
+      <button type="button" [class.active]="activeSection() === 'appearance'" (click)="setSection('appearance')">ظاهر</button>
       <button type="button" [class.active]="activeSection() === 'email'" (click)="setSection('email')">ایمیل</button>
       <button type="button" [class.active]="activeSection() === 'phone'" (click)="setSection('phone')">موبایل</button>
       <button type="button" [class.active]="activeSection() === 'password'" (click)="setSection('password')">رمز عبور</button>
@@ -109,6 +110,37 @@
           @if (purchaseAmount() !== null) {
             <p class="muted">مبلغ کسر شده: {{ formatRials(purchaseAmount()) }}</p>
           }
+        }
+
+        @case ('appearance') {
+          <div class="panel-heading">
+            <h1>ظاهر</h1>
+            <p>اندازه متن چت را متناسب با راحتی مطالعه تنظیم کنید.</p>
+          </div>
+
+          <div class="appearance-card">
+            <div class="settings-row standalone">
+              <div>
+                <span>اندازه متن چت</span>
+                <strong>{{ chatFontSize() }}px</strong>
+              </div>
+              <button type="button" class="btn-secondary" (click)="resetChatFontSize()">بازنشانی</button>
+            </div>
+
+            <input
+              class="range-input"
+              type="range"
+              min="16"
+              max="24"
+              step="1"
+              [value]="chatFontSize()"
+              (input)="setChatFontSize($event)"
+            />
+
+            <div class="font-preview" [style.font-size.px]="chatFontSize()">
+              این یک نمونه متن چت است. اندازه پیش‌فرض برای خوانایی بهتر ۲۰ پیکسل تنظیم شده است.
+            </div>
+          </div>
         }
 
         @case ('email') {
