@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, map } from 'rxjs';
 import type {
   UserCreate,
   UserLogin,
@@ -46,7 +46,7 @@ export class AuthService {
   ) {
     const token = this.tokenSignal();
     if (token) {
-      this.loadUser().subscribe();
+      this.loadUser().pipe(catchError(() => this.clearAuthAndReturnNull())).subscribe();
     }
   }
 
@@ -115,6 +115,24 @@ export class AuthService {
     );
   }
 
+  ensureSession(): Observable<boolean> {
+    const token = this.getAccessToken();
+    if (!token) {
+      this.clearStoredAuth();
+      return of(false);
+    }
+    if (this.userSignal()) {
+      return of(true);
+    }
+    return this.loadUser().pipe(
+      map(() => true),
+      catchError(() => {
+        this.clearStoredAuth();
+        return of(false);
+      })
+    );
+  }
+
   loadUser(): Observable<UserResponse> {
     return this.http.get<UserResponse>(`${this.apiUrl}/me`).pipe(
       tap((user) => {
@@ -168,12 +186,21 @@ export class AuthService {
   }
 
   private clearAuth(): void {
+    this.clearStoredAuth();
+    this.router.navigate(['/login']);
+  }
+
+  private clearStoredAuth(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
     this.tokenSignal.set(null);
     this.userSignal.set(null);
-    this.router.navigate(['/login']);
+  }
+
+  private clearAuthAndReturnNull(): Observable<null> {
+    this.clearStoredAuth();
+    return of(null);
   }
 
   private getStoredToken(): string | null {
