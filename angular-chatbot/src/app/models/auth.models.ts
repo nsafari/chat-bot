@@ -77,6 +77,16 @@ export interface PasswordChangeResponse {
   message: string;
 }
 
+export interface PasswordResetWithOtpRequest {
+  phone_number: string;
+  new_password: string;
+  otp_proof: string;
+}
+
+export interface SuccessResponse {
+  message: string;
+}
+
 export interface UserResponse {
   id?: string | null;
   email?: string | null;

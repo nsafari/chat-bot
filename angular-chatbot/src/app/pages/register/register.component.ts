@@ -1,11 +1,13 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { getErrorMessage } from '../../utils/error';
 
 const PHONE_REGEX = /^(09\d{9}|\+989\d{9}|989\d{9})$/;
+type RegisterStep = 'phone' | 'otp' | 'profile';
 
 @Component({
   selector: 'app-register',
@@ -14,42 +16,47 @@ const PHONE_REGEX = /^(09\d{9}|\+989\d{9}|989\d{9})$/;
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
-export class RegisterComponent implements OnDestroy {
-  form: FormGroup;
+export class RegisterComponent {
+  phoneForm: FormGroup;
   otpForm: FormGroup;
+  accountForm: FormGroup;
+  step: RegisterStep = 'phone';
   loading = false;
   otpLoading = false;
   verifyingOtp = false;
   error = '';
   otpMessage = '';
-  otpRequested = false;
-  otpVerified = false;
   private otpProof: string | null = null;
+  private verifiedPhone: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router
   ) {
-    this.form = this.fb.nonNullable.group({
-      phone_number: ['', [Validators.required, Validators.pattern(PHONE_REGEX)]],
-      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]]
+    this.phoneForm = this.fb.nonNullable.group({
+      phone_number: ['', [Validators.required, Validators.pattern(PHONE_REGEX)]]
     });
     this.otpForm = this.fb.nonNullable.group({
       code: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]]
     });
-    this.form.get('phone_number')?.valueChanges.subscribe(() => {
+    this.accountForm = this.fb.nonNullable.group(
+      {
+        username: ['', [Validators.minLength(3), Validators.maxLength(50)]],
+        email: ['', [Validators.email]],
+        full_name: [''],
+        password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]]
+      },
+      { validators: [this.usernameOrEmailRequired] }
+    );
+    this.phoneForm.get('phone_number')?.valueChanges.subscribe(() => {
       this.resetOtpState();
     });
   }
 
-  ngOnDestroy(): void {
-    // no-op; reserved for future async cleanup
-  }
-
   requestOtp(): void {
     if (this.otpLoading) return;
-    const phone = this.form.get('phone_number')?.value?.trim() ?? '';
+    const phone = this.phoneForm.get('phone_number')?.value?.trim() ?? '';
     if (!PHONE_REGEX.test(phone)) {
       this.error = 'شماره موبایل معتبر نیست. قالب مجاز: 09xxxxxxxxx یا +989xxxxxxxxx یا 989xxxxxxxxx';
       return;
@@ -58,27 +65,27 @@ export class RegisterComponent implements OnDestroy {
     this.error = '';
     this.otpMessage = '';
     const normalizedPhone = this.normalizePhone(phone);
-    this.auth.requestOtp({ phone_number: normalizedPhone, purpose: 'register' }).subscribe({
-      next: (res) => {
-        this.otpMessage = res.message;
-        this.otpRequested = true;
-        this.otpVerified = false;
-        this.otpProof = null;
-        this.otpForm.reset();
-      },
-      error: (err) => {
-        this.resetOtpState();
-        this.error = getErrorMessage(err);
-      },
-      complete: () => {
-        this.otpLoading = false;
-      }
-    });
+    this.auth
+      .requestOtp({ phone_number: normalizedPhone, purpose: 'register' })
+      .pipe(finalize(() => (this.otpLoading = false)))
+      .subscribe({
+        next: (res) => {
+          this.otpMessage = res.message;
+          this.step = 'otp';
+          this.otpProof = null;
+          this.verifiedPhone = null;
+          this.otpForm.reset();
+        },
+        error: (err) => {
+          this.resetOtpState();
+          this.error = getErrorMessage(err);
+        }
+      });
   }
 
   verifyOtp(): void {
     if (this.verifyingOtp || this.otpForm.invalid) return;
-    const phone = this.form.get('phone_number')?.value?.trim() ?? '';
+    const phone = this.phoneForm.get('phone_number')?.value?.trim() ?? '';
     if (!PHONE_REGEX.test(phone)) {
       this.error = 'شماره موبایل معتبر نیست.';
       return;
@@ -93,63 +100,104 @@ export class RegisterComponent implements OnDestroy {
         purpose: 'register',
         code
       })
+      .pipe(finalize(() => (this.verifyingOtp = false)))
       .subscribe({
         next: (res) => {
           this.otpProof = res.otp_proof;
-          this.otpVerified = true;
-          this.otpMessage = 'شماره موبایل تایید شد.';
+          this.verifiedPhone = this.normalizePhone(phone);
+          this.step = 'profile';
+          this.otpMessage = 'شماره موبایل تایید شد. اطلاعات حساب را تکمیل کنید.';
         },
         error: (err) => {
           this.otpProof = null;
-          this.otpVerified = false;
+          this.verifiedPhone = null;
           this.error = getErrorMessage(err);
-          this.otpMessage = 'در تایید کد خطا رخ داد. در صورت نیاز کد را دوباره ارسال کنید.';
-        },
-        complete: () => {
-          this.verifyingOtp = false;
+          this.otpMessage = '';
         }
       });
   }
 
   onSubmit(): void {
-    if (this.form.invalid || this.loading) return;
-    if (!this.otpVerified || !this.otpProof) {
+    if (this.accountForm.invalid || this.loading) {
+      this.accountForm.markAllAsTouched();
+      return;
+    }
+    if (!this.otpProof || !this.verifiedPhone) {
       this.error = 'ابتدا کد تایید پیامک را دریافت و تایید کنید.';
       return;
     }
-    const raw = this.form.getRawValue();
+    const raw = this.accountForm.getRawValue();
     this.loading = true;
     this.error = '';
     this.otpMessage = '';
     this.auth
       .register({
-        phone_number: this.normalizePhone(raw.phone_number),
+        phone_number: this.verifiedPhone,
         otp_proof: this.otpProof,
-        password: raw.password
+        password: raw.password,
+        username: this.cleanOptional(raw.username),
+        email: this.cleanOptional(raw.email),
+        full_name: this.cleanOptional(raw.full_name)
       })
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => this.router.navigate(['/chat']),
         error: (err) => {
-          this.loading = false;
           this.error = getErrorMessage(err);
-          this.otpMessage = 'ثبت‌نام ناموفق بود. لطفاً دوباره کد تایید دریافت کنید.';
-          this.resetOtpState();
-        },
-        complete: () => (this.loading = false)
+          this.otpMessage = '';
+        }
       });
   }
 
-  restartOtpFlow(): void {
+  resendOtp(): void {
+    this.otpForm.reset();
+    this.otpProof = null;
+    this.verifiedPhone = null;
+    this.requestOtp();
+  }
+
+  editPhone(): void {
     this.resetOtpState();
     this.error = '';
     this.otpMessage = '';
   }
 
   private resetOtpState(): void {
-    this.otpRequested = false;
-    this.otpVerified = false;
+    this.step = 'phone';
     this.otpProof = null;
+    this.verifiedPhone = null;
     this.otpForm.reset();
+  }
+
+  backToPhone(): void {
+    this.editPhone();
+  }
+
+  backToOtp(): void {
+    this.step = 'otp';
+    this.error = '';
+    this.otpMessage = '';
+  }
+
+  get stepSubtitle(): string {
+    if (this.step === 'phone') return 'ثبت‌نام با شماره موبایل';
+    if (this.step === 'otp') return 'کد تایید ارسال‌شده را وارد کنید';
+    return 'اطلاعات حساب را تکمیل کنید';
+  }
+
+  get displayPhone(): string {
+    return this.phoneForm.get('phone_number')?.value?.trim() || '-';
+  }
+
+  private usernameOrEmailRequired(control: AbstractControl): ValidationErrors | null {
+    const username = control.get('username')?.value?.trim();
+    const email = control.get('email')?.value?.trim();
+    return username || email ? null : { usernameOrEmailRequired: true };
+  }
+
+  private cleanOptional(value: string): string | null {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
   }
 
   private normalizePhone(phone: string): string {

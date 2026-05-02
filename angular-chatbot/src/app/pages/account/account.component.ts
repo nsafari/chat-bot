@@ -7,13 +7,15 @@ import { CreditsService } from '../../services/credits.service';
 import { getErrorMessage } from '../../utils/error';
 import type { WalletResponse } from '../../models/payment.models';
 import type { PricingResponse } from '../../models/credits.models';
+import { PaymentModalComponent } from '../../components/payment-modal/payment-modal.component';
+import { UiPreferencesService } from '../../services/ui-preferences.service';
 
 const PHONE_REGEX = /^(09\d{9}|\+989\d{9}|989\d{9})$/;
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, PaymentModalComponent],
   templateUrl: './account.component.html',
   styleUrl: './account.component.scss'
 })
@@ -21,10 +23,13 @@ export class AccountComponent implements OnInit {
   private auth = inject(AuthService);
   private payment = inject(PaymentService);
   private credits = inject(CreditsService);
+  private uiPreferences = inject(UiPreferencesService);
   private fb = inject(FormBuilder);
 
   user = this.auth.user;
   remainingMessages = computed(() => this.auth.getRemainingMessages());
+  activeSection = signal<'general' | 'appearance' | 'credits' | 'email' | 'phone' | 'password'>('general');
+  chatFontSize = this.uiPreferences.chatFontSize;
 
   loadingUser = signal(true);
   walletLoading = signal(true);
@@ -35,6 +40,7 @@ export class AccountComponent implements OnInit {
   phoneOtpVerifying = signal(false);
   phoneChangeLoading = signal(false);
   purchaseLoading = signal(false);
+  showPaymentModal = signal(false);
 
   profileError = signal('');
   emailMessage = signal('');
@@ -70,17 +76,37 @@ export class AccountComponent implements OnInit {
     message_count: [10, [Validators.required, Validators.min(1)]]
   });
 
-  estimatedPurchaseCost = computed(() => {
+  estimatedPurchaseCost(): number | null {
     const pricing = this.pricing();
     const count = this.purchaseForm.controls.message_count.value;
     if (!pricing || count <= 0) return null;
     return count * pricing.price_per_message;
-  });
+  }
+
+  walletShortfall(): number | null {
+    const cost = this.estimatedPurchaseCost();
+    const balance = this.wallet()?.balance ?? 0;
+    if (cost === null || cost <= balance) return null;
+    return cost - balance;
+  }
 
   ngOnInit(): void {
     this.loadUser();
     this.reloadWallet();
     this.loadPricing();
+  }
+
+  setSection(section: 'general' | 'appearance' | 'credits' | 'email' | 'phone' | 'password'): void {
+    this.activeSection.set(section);
+  }
+
+  setChatFontSize(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.uiPreferences.setChatFontSize(Number(input.value));
+  }
+
+  resetChatFontSize(): void {
+    this.uiPreferences.resetChatFontSize();
   }
 
   loadUser(): void {
@@ -255,6 +281,15 @@ export class AccountComponent implements OnInit {
       },
       complete: () => this.purchaseLoading.set(false)
     });
+  }
+
+  openWalletTopUp(): void {
+    this.showPaymentModal.set(true);
+  }
+
+  closeWalletTopUp(): void {
+    this.showPaymentModal.set(false);
+    this.reloadWallet();
   }
 
   formatRials(value: number | null): string {

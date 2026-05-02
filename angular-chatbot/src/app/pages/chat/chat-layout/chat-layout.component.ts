@@ -3,13 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
-import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
-import { FREE_MESSAGE_LIMIT } from '../../../constants/payment';
+import type { ChatResponse } from '../../../models/chat.models';
 
 @Component({
   selector: 'app-chat-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, PaymentModalComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './chat-layout.component.html',
   styleUrl: './chat-layout.component.scss'
 })
@@ -18,21 +17,17 @@ export class ChatLayoutComponent implements OnInit {
   private chat = inject(ChatService);
   private router = inject(Router);
 
-  showPaymentModal = signal(false);
   sidebarOpen = signal(true);
 
   user = this.auth.user;
-  chats = signal<Array<{ id: string; title: string }>>([]);
+  chats = signal<ChatResponse[]>([]);
   loadingChats = signal(true);
+  creatingChat = signal(false);
 
   remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   needsPayment = computed(() => {
     const r = this.remainingMessages();
     return r !== null && r <= 0;
-  });
-  freeMessagesLeft = computed(() => {
-    const r = this.remainingMessages();
-    return r !== null ? Math.max(0, r) : FREE_MESSAGE_LIMIT;
   });
 
   ngOnInit(): void {
@@ -61,21 +56,23 @@ export class ChatLayoutComponent implements OnInit {
   }
 
   newChat(): void {
+    if (this.creatingChat()) return;
+    const emptyChat = this.chats().find((chat) => (chat.message_count ?? 0) === 0);
+    if (emptyChat) {
+      this.router.navigate(['/chat', emptyChat.id]);
+      this.closeSidebarOnMobile();
+      return;
+    }
+    this.creatingChat.set(true);
     this.chat.createChat().subscribe({
       next: (chat) => {
         this.loadChats();
         this.router.navigate(['/chat', chat.id]);
-      }
+        this.closeSidebarOnMobile();
+      },
+      complete: () => this.creatingChat.set(false),
+      error: () => this.creatingChat.set(false)
     });
-  }
-
-  openPayment(): void {
-    this.showPaymentModal.set(true);
-  }
-
-  closePayment(): void {
-    this.showPaymentModal.set(false);
-    this.auth.loadUser().subscribe();
   }
 
   toggleSidebar(): void {

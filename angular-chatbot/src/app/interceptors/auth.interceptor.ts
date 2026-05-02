@@ -8,7 +8,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const token = auth.getAccessToken();
-  const isPublicAuthRequest = /\/api\/v1\/auth\/(login|register|otp\/request|otp\/verify|refresh)(\/|$)/.test(req.url);
+  const isPublicAuthRequest = /\/api\/v1\/auth\/(login|register|reset_password|otp\/request|otp\/verify|refresh)(\/|$)/.test(req.url);
 
   let authReq = req;
   if (!isPublicAuthRequest && token) {

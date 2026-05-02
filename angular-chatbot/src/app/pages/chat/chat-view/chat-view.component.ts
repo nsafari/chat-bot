@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ChatService } from '../../../services/chat.service';
 import { AuthService } from '../../../services/auth.service';
+import { UiPreferencesService } from '../../../services/ui-preferences.service';
 import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
 import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 import type { MessageResponse } from '../../../models/chat.models';
@@ -24,10 +25,15 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   private router = inject(Router);
   private chat = inject(ChatService);
   private auth = inject(AuthService);
+  private uiPreferences = inject(UiPreferencesService);
   private sub?: Subscription;
   private scrollPending = false;
+  private shouldStickToBottom = true;
   private typingTimer: ReturnType<typeof setInterval> | null = null;
   private optimisticCounter = -1;
+  private readonly typingIntervalMs = 18;
+  private readonly wordsPerTick = 2;
+  private readonly bottomThresholdPx = 80;
 
   chatId = signal<string | null>(null);
   messages = signal<MessageResponse[]>([]);
@@ -35,6 +41,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
   sending = signal(false);
   error = signal('');
   showPaymentModal = signal(false);
+  chatFontSize = this.uiPreferences.chatFontSize;
 
   input = new FormControl('', { nonNullable: true });
 
@@ -73,6 +80,10 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.scrollPending = true;
   }
 
+  onMessagesScroll(): void {
+    this.shouldStickToBottom = this.isNearBottom();
+  }
+
   loadChat(id: string): void {
     this.loading.set(true);
     this.chat.getChat(id).subscribe({
@@ -99,6 +110,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       if (!this.canSend()) this.showPaymentModal.set(true);
       return;
     }
+    this.shouldStickToBottom = true;
     this.sending.set(true);
     this.error.set('');
     this.input.setValue('');
@@ -145,7 +157,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       id: `pending-assistant-${Math.abs(this.optimisticCounter--)}`,
       chat_session_id: chatId,
       role: 'assistant',
-      content: 'در حال پردازش پاسخ...',
+      content: '',
       order_index: Number.MAX_SAFE_INTEGER,
       created_at: nowIso,
       metadata: { pending: true }
@@ -189,8 +201,8 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.finishAssistantTyping(assistantMessage, fullText);
         return;
       }
-      currentText += words[cursor];
-      cursor += 1;
+      currentText += words.slice(cursor, cursor + this.wordsPerTick).join('');
+      cursor += this.wordsPerTick;
       this.messages.update((items) => {
         const idx = items.findIndex((item) => item.id === assistantMessage.id);
         if (idx === -1) return items;
@@ -202,8 +214,10 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         };
         return next;
       });
-      this.scrollToBottom();
-    }, 35);
+      if (this.shouldStickToBottom) {
+        this.scrollToBottom();
+      }
+    }, this.typingIntervalMs);
   }
 
   private finishAssistantTyping(assistantMessage: MessageResponse, content: string): void {
@@ -215,7 +229,9 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       next[idx] = { ...assistantMessage, content, metadata: { ...(assistantMessage.metadata ?? {}), streaming: false } };
       return next;
     });
-    this.scrollToBottom();
+    if (this.shouldStickToBottom) {
+      this.scrollToBottom();
+    }
     this.sending.set(false);
   }
 
@@ -231,6 +247,12 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
       clearInterval(this.typingTimer);
       this.typingTimer = null;
     }
+  }
+
+  private isNearBottom(): boolean {
+    const el = this.messagesEl?.nativeElement;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight <= this.bottomThresholdPx;
   }
 
   private extractRemainingCredits(res: RAGQueryResponse): number | null | undefined {

@@ -1,4 +1,4 @@
-import { Component, output, signal } from '@angular/core';
+import { Component, Input, OnChanges, output, signal, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
@@ -12,7 +12,8 @@ import { getErrorMessage } from '../../utils/error';
   templateUrl: './payment-modal.component.html',
   styleUrl: './payment-modal.component.scss'
 })
-export class PaymentModalComponent {
+export class PaymentModalComponent implements OnChanges {
+  @Input() suggestedAmount: number | null = null;
   closed = output<void>();
 
   form: FormGroup;
@@ -28,6 +29,14 @@ export class PaymentModalComponent {
       amount: [DEFAULT_PAYMENT_AMOUNT],
       discount_code: ['']
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['suggestedAmount']) return;
+    const amount = this.suggestedAmount;
+    if (amount != null && amount > 0) {
+      this.form.get('amount')?.setValue(Math.ceil(amount / 1000) * 1000);
+    }
   }
 
   validateDiscount(): void {
