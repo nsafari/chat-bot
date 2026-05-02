@@ -14,6 +14,25 @@
   }
 }
 
+.panel {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0.75rem;
+  padding: 1rem;
+
+  h2 {
+    margin: 0 0 0.75rem;
+    color: #f8fafc;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0 0 0.5rem;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+  }
+}
+
 .card {
   background: #1e293b;
   border: 1px solid rgba(148, 163, 184, 0.16);
@@ -31,6 +50,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: 0.7rem;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
 }
 
 .label {
@@ -110,6 +135,12 @@ button {
   cursor: pointer;
 }
 
+.row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .btn-primary {
   color: #0f172a;
   background: #38bdf8;
@@ -128,6 +159,39 @@ button {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+.wallet-topup-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.muted {
+  color: #94a3b8 !important;
+  font-size: 0.85rem !important;
+}
+
+.status {
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: #86efac !important;
+
+  &.err {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5 !important;
   }
 }
 

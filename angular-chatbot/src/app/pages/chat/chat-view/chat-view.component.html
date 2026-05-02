@@ -5,7 +5,7 @@
       <p>در حال بارگذاری چت...</p>
     </div>
   } @else {
-    <div class="messages" #messagesContainer>
+    <div class="messages" #messagesContainer (scroll)="onMessagesScroll()">
       @if (messages().length === 0) {
         <div class="empty-state">
           <h3>شروع مکالمه</h3>
@@ -15,12 +15,16 @@
         @for (msg of messages(); track msg.id) {
           <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
             <div class="bubble">
-              @if (msg.role === 'assistant' && msg.metadata?.['streaming']) {
-                <span class="typing-indicator" aria-hidden="true"></span>
+              @if (msg.role === 'assistant' && msg.metadata?.['pending']) {
+                <div class="response-loader" aria-label="در حال دریافت پاسخ">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               }
-              @if (msg.role === 'assistant') {
+              @if (msg.role === 'assistant' && !msg.metadata?.['pending']) {
                 <div class="message-content markdown-content" [innerHTML]="msg.content | markdown"></div>
-              } @else {
+              } @else if (msg.role !== 'assistant') {
                 <p class="message-content">{{ msg.content }}</p>
               }
               <span class="time">{{ formatTime(msg.created_at) }}</span>
@@ -37,8 +41,8 @@
     <div class="input-area">
       @if (needsPayment()) {
         <div class="quota-exceeded">
-          <p>پیام‌های رایگان تمام شده. برای ادامه ارتقا دهید.</p>
-          <button class="btn-upgrade" (click)="openPayment()">ارتقا</button>
+          <p>اعتبار پیام شما تمام شده است. برای ادامه credit بخرید.</p>
+          <button class="btn-upgrade" (click)="openPayment()">خرید credit</button>
         </div>
       } @else {
         <form (ngSubmit)="send()" class="input-form">

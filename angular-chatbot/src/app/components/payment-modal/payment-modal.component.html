@@ -1,10 +1,10 @@
 <div class="modal-backdrop" (click)="close()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>ارتقا برای ادامه</h2>
+      <h2>خرید credit</h2>
       <button class="btn-close" (click)="close()" aria-label="بستن">&times;</button>
     </div>
-    <p class="modal-desc">اعتبار کیف پول اضافه کنید تا پیام بیشتر بفرستید.</p>
+    <p class="modal-desc">برای خرید credit، در صورت نیاز ابتدا کیف پول خود را شارژ کنید.</p>
 
     @if (error()) {
       <div class="error-banner">{{ error() }}</div>
@@ -12,7 +12,7 @@
 
     <form [formGroup]="form" (ngSubmit)="pay()" class="payment-form">
       <div class="field">
-        <label>مبلغ (ریال)</label>
+        <label>شارژ کیف پول (ریال)</label>
         <input type="number" formControlName="amount" min="1000" step="1000" />
       </div>
       <div class="field">
@@ -32,7 +32,7 @@
         <strong>{{ formatRials(displayAmount) }}</strong>
       </div>
       <button type="submit" class="btn-pay" [disabled]="loading()">
-        {{ loading() ? 'در حال انتقال...' : 'پرداخت و ادامه' }}
+        {{ loading() ? 'در حال انتقال...' : 'شارژ کیف پول' }}
       </button>
     </form>
   </div>
