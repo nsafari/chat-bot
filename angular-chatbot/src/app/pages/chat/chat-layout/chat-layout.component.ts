@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
+import type { ChatResponse } from '../../../models/chat.models';
 
 @Component({
   selector: 'app-chat-layout',
@@ -19,8 +20,9 @@ export class ChatLayoutComponent implements OnInit {
   sidebarOpen = signal(true);
 
   user = this.auth.user;
-  chats = signal<Array<{ id: string; title: string }>>([]);
+  chats = signal<ChatResponse[]>([]);
   loadingChats = signal(true);
+  creatingChat = signal(false);
 
   remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   needsPayment = computed(() => {
@@ -54,11 +56,22 @@ export class ChatLayoutComponent implements OnInit {
   }
 
   newChat(): void {
+    if (this.creatingChat()) return;
+    const emptyChat = this.chats().find((chat) => (chat.message_count ?? 0) === 0);
+    if (emptyChat) {
+      this.router.navigate(['/chat', emptyChat.id]);
+      this.closeSidebarOnMobile();
+      return;
+    }
+    this.creatingChat.set(true);
     this.chat.createChat().subscribe({
       next: (chat) => {
         this.loadChats();
         this.router.navigate(['/chat', chat.id]);
-      }
+        this.closeSidebarOnMobile();
+      },
+      complete: () => this.creatingChat.set(false),
+      error: () => this.creatingChat.set(false)
     });
   }
 

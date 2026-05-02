@@ -16,7 +16,9 @@ import type {
   PhoneChangeRequest,
   PhoneChangeResponse,
   PasswordChangeRequest,
-  PasswordChangeResponse
+  PasswordChangeResponse,
+  PasswordResetWithOtpRequest,
+  SuccessResponse
 } from '../models/auth.models';
 import { ApiConfigService } from './api-config.service';
 
@@ -76,6 +78,10 @@ export class AuthService {
 
   changePassword(data: PasswordChangeRequest): Observable<PasswordChangeResponse> {
     return this.http.put<PasswordChangeResponse>(`${this.apiUrl}/me/reset-password`, data);
+  }
+
+  resetPassword(data: PasswordResetWithOtpRequest): Observable<SuccessResponse> {
+    return this.http.post<SuccessResponse>(`${this.apiUrl}/reset_password`, data);
   }
 
   login(data: UserLogin): Observable<Token> {

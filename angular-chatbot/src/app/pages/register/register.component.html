@@ -1,7 +1,13 @@
 <div class="register-page">
   <div class="register-card">
     <h1>ایجاد حساب</h1>
-    <p class="subtitle">ثبت‌نام با شماره موبایل و کد تایید</p>
+    <p class="subtitle">{{ stepSubtitle }}</p>
+
+    <div class="stepper" aria-label="مراحل ثبت‌نام">
+      <span class="step" [class.active]="step === 'phone'" [class.done]="step !== 'phone'">شماره</span>
+      <span class="step" [class.active]="step === 'otp'" [class.done]="step === 'profile'">کد تایید</span>
+      <span class="step" [class.active]="step === 'profile'">حساب</span>
+    </div>
 
     @if (error) {
       <div class="error-banner">{{ error }}</div>
@@ -10,29 +16,32 @@
       <div class="success-banner">{{ otpMessage }}</div>
     }
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="register-form">
-      <div class="field">
-        <label for="phone_number">شماره موبایل</label>
-        <input
-          id="phone_number"
-          type="tel"
-          formControlName="phone_number"
-          placeholder="09120000000"
-          autocomplete="tel"
-        />
-        <span class="hint">شماره را با 0 اول وارد کنید</span>
-      </div>
+    @if (step === 'phone') {
+      <form [formGroup]="phoneForm" (ngSubmit)="requestOtp()" class="register-form">
+        <div class="field">
+          <label for="phone_number">شماره موبایل</label>
+          <input
+            id="phone_number"
+            type="tel"
+            formControlName="phone_number"
+            placeholder="09120000000"
+            autocomplete="tel"
+          />
+          <span class="hint">شماره را با 0 اول وارد کنید</span>
+        </div>
 
-      <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="requestOtp()">
-        @if (otpLoading) {
-          در حال ارسال کد...
-        } @else {
-          ارسال کد تایید
-        }
-      </button>
+        <button type="submit" class="btn-primary" [disabled]="otpLoading || phoneForm.invalid">
+          {{ otpLoading ? 'در حال ارسال کد...' : 'ارسال کد تایید' }}
+        </button>
+      </form>
+    } @else if (step === 'otp') {
+      <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="register-form">
+        <div class="selected-phone">
+          <span>شماره موبایل</span>
+          <strong>{{ displayPhone }}</strong>
+        </div>
 
-      @if (otpRequested) {
-        <div class="field" [formGroup]="otpForm">
+        <div class="field">
           <label for="otp_code">کد تایید</label>
           <div class="otp-row">
             <input
@@ -42,15 +51,43 @@
               placeholder="کد 4 تا 8 رقمی"
               inputmode="numeric"
             />
-            <button type="button" class="btn-verify" [disabled]="verifyingOtp" (click)="verifyOtp()">
+            <button type="submit" class="btn-verify" [disabled]="verifyingOtp || otpForm.invalid">
               {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
             </button>
           </div>
-          @if (otpVerified) {
-            <span class="success-text">شماره موبایل تایید شد.</span>
-          } @else {
-            <span class="hint">ابتدا کد تایید را ارسال و تایید کنید</span>
-          }
+          <span class="hint">کد پیامک‌شده را وارد کنید.</span>
+        </div>
+
+        <div class="action-row">
+          <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="requestOtp()">
+            {{ otpLoading ? 'در حال ارسال...' : 'ارسال مجدد کد' }}
+          </button>
+          <button type="button" class="btn-link" [disabled]="otpLoading || verifyingOtp" (click)="backToPhone()">
+            تغییر شماره
+          </button>
+        </div>
+      </form>
+    } @else {
+      <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="register-form">
+        <div class="selected-phone verified">
+          <span>شماره تایید شده</span>
+          <strong>{{ displayPhone }}</strong>
+        </div>
+
+        <div class="field">
+          <label for="username">نام کاربری</label>
+          <input id="username" type="text" formControlName="username" placeholder="username" autocomplete="username" />
+          <span class="hint">نام کاربری یا ایمیل؛ حداقل یکی الزامی است.</span>
+        </div>
+
+        <div class="field">
+          <label for="email">ایمیل</label>
+          <input id="email" type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label for="full_name">نام کامل</label>
+          <input id="full_name" type="text" formControlName="full_name" placeholder="اختیاری" autocomplete="name" />
         </div>
 
         <div class="field">
@@ -64,14 +101,15 @@
           />
           <span class="hint">حداقل ۶ کاراکتر</span>
         </div>
-        <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="restartOtpFlow()">
-          ارسال مجدد کد
-        </button>
-        <button type="submit" class="btn-primary" [disabled]="loading || !otpVerified">
+
+        <button type="submit" class="btn-primary" [disabled]="loading || accountForm.invalid">
           {{ loading ? 'در حال ایجاد...' : 'ایجاد حساب' }}
         </button>
-      }
-    </form>
+        <button type="button" class="btn-link" [disabled]="loading" (click)="backToOtp()">
+          برگشت به تایید کد
+        </button>
+      </form>
+    }
 
     <p class="footer-link">
       قبلاً ثبت‌نام کردید؟ <a routerLink="/login">ورود</a>

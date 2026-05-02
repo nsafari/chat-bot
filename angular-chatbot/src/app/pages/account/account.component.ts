@@ -26,6 +26,7 @@ export class AccountComponent implements OnInit {
 
   user = this.auth.user;
   remainingMessages = computed(() => this.auth.getRemainingMessages());
+  activeSection = signal<'general' | 'credits' | 'email' | 'phone' | 'password'>('general');
 
   loadingUser = signal(true);
   walletLoading = signal(true);
@@ -90,6 +91,10 @@ export class AccountComponent implements OnInit {
     this.loadUser();
     this.reloadWallet();
     this.loadPricing();
+  }
+
+  setSection(section: 'general' | 'credits' | 'email' | 'phone' | 'password'): void {
+    this.activeSection.set(section);
   }
 
   loadUser(): void {

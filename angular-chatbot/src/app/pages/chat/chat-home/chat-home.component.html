@@ -2,6 +2,8 @@
   <div class="welcome">
     <h1>چت‌بات هوش مصنوعی</h1>
     <p>چت جدید شروع کنید یا از منوی کناری یکی را انتخاب کنید.</p>
-    <button class="btn-start" (click)="startNew()">شروع چت جدید</button>
+    <button class="btn-start" (click)="startNew()" [disabled]="creating">
+      {{ creating ? 'در حال آماده‌سازی...' : 'شروع چت جدید' }}
+    </button>
   </div>
 </div>

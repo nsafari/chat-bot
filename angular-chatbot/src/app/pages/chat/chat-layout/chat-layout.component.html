@@ -14,9 +14,9 @@
       <h2>چت‌ها</h2>
     </div>
 
-    <button class="btn-new-chat" (click)="newChat()">
+    <button class="btn-new-chat" (click)="newChat()" [disabled]="creatingChat()">
       <span class="icon">+</span>
-      چت جدید
+      {{ creatingChat() ? 'در حال ساخت...' : 'چت جدید' }}
     </button>
 
     @if (needsPayment()) {

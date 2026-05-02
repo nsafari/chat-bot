@@ -1,157 +1,202 @@
 <div class="account-page">
-  <h1>اکانت کاربری</h1>
-
-  @if (profileError()) {
-    <div class="status err">{{ profileError() }}</div>
-  }
-
-  <section class="panel">
-    <h2>اطلاعات حساب</h2>
-    <p><strong>شناسه:</strong> {{ user()?.id || '-' }}</p>
-    <p><strong>ایمیل:</strong> {{ user()?.email || '-' }}</p>
-    <p><strong>نام کاربری:</strong> {{ user()?.username || '-' }}</p>
-    <p><strong>نام کامل:</strong> {{ user()?.full_name || '-' }}</p>
-    <p><strong>وضعیت:</strong> {{ user()?.is_active === false ? 'غیرفعال' : 'فعال' }}</p>
-    <p class="muted">
-      خرید: {{ user()?.total_purchased ?? 0 }} | مصرف: {{ user()?.total_used ?? 0 }}
-    </p>
-  </section>
-
-  <div class="account-grid">
-    <section class="panel">
-      <div class="wallet-header">
-        <div>
-          <h2>خرید credit</h2>
-          <p class="muted">از این بخش credit بخرید؛ اگر موجودی کیف پول کافی نبود، همان‌جا کیف پول را شارژ کنید.</p>
-        </div>
-        <button type="button" class="btn-secondary" (click)="reloadWallet()" [disabled]="walletLoading()">
-          {{ walletLoading() ? 'در حال بروزرسانی...' : 'بروزرسانی' }}
-        </button>
+  <div class="settings-shell">
+    <aside class="settings-nav" aria-label="تنظیمات حساب">
+      <div class="settings-title">
+        <span>تنظیمات</span>
+        <strong>{{ user()?.username || user()?.email || 'حساب کاربری' }}</strong>
       </div>
+      <button type="button" [class.active]="activeSection() === 'general'" (click)="setSection('general')">عمومی</button>
+      <button type="button" [class.active]="activeSection() === 'credits'" (click)="setSection('credits')">خرید credit</button>
+      <button type="button" [class.active]="activeSection() === 'email'" (click)="setSection('email')">ایمیل</button>
+      <button type="button" [class.active]="activeSection() === 'phone'" (click)="setSection('phone')">موبایل</button>
+      <button type="button" [class.active]="activeSection() === 'password'" (click)="setSection('password')">رمز عبور</button>
+    </aside>
 
-      <div class="wallet-balance">
-        <span class="label">موجودی کیف پول</span>
-        <strong class="amount">{{ formatRials(wallet()?.balance ?? 0) }}</strong>
-        <span class="muted">واحد: {{ wallet()?.currency || 'IRR' }}</span>
-      </div>
-
-      @if (pricingError()) {
-        <p class="status err">{{ pricingError() }}</p>
+    <section class="settings-panel">
+      @if (profileError()) {
+        <div class="status err">{{ profileError() }}</div>
       }
 
-      <form class="form" [formGroup]="purchaseForm" (ngSubmit)="purchaseCredits()">
-        <label>
-          تعداد پیام
-          <input
-            type="number"
-            formControlName="message_count"
-            [attr.min]="pricing()?.min_purchase ?? 1"
-            [attr.max]="pricing()?.max_purchase ?? 999999"
-          />
-        </label>
-        <p class="muted">قیمت هر پیام: {{ formatRials(pricing()?.price_per_message ?? 0) }}</p>
-        <p class="muted">حداقل: {{ pricing()?.min_purchase ?? '-' }} | حداکثر: {{ pricing()?.max_purchase ?? '-' }}</p>
-        <p><strong>هزینه تقریبی:</strong> {{ formatRials(estimatedPurchaseCost()) }}</p>
-        @if (walletShortfall(); as shortfall) {
-          <div class="wallet-topup-box">
-            <p>موجودی کیف پول برای این خرید کافی نیست.</p>
-            <button type="button" class="btn-secondary" (click)="openWalletTopUp()">
-              شارژ کیف پول به مبلغ {{ formatRials(shortfall) }}
-            </button>
+      @switch (activeSection()) {
+        @case ('general') {
+          <div class="panel-heading">
+            <h1>عمومی</h1>
+            <p>اطلاعات اصلی حساب شما.</p>
+          </div>
+          <div class="settings-list">
+            <div class="settings-row">
+              <span>نام کاربری</span>
+              <strong>{{ user()?.username || '-' }}</strong>
+            </div>
+            <div class="settings-row">
+              <span>ایمیل</span>
+              <strong>{{ user()?.email || '-' }}</strong>
+            </div>
+            <div class="settings-row">
+              <span>نام کامل</span>
+              <strong>{{ user()?.full_name || '-' }}</strong>
+            </div>
+            <div class="settings-row">
+              <span>وضعیت</span>
+              <strong>{{ user()?.is_active === false ? 'غیرفعال' : 'فعال' }}</strong>
+            </div>
           </div>
         }
-        <button class="btn-primary" type="submit" [disabled]="purchaseLoading() || purchaseForm.invalid">
-          {{ purchaseLoading() ? 'در حال خرید...' : 'خرید credit' }}
-        </button>
-      </form>
-      @if (purchaseMessage()) {
-        <p class="status">
-          {{ purchaseMessage() }}
-        </p>
-      }
-      @if (purchaseAmount() !== null) {
-        <p class="muted">مبلغ کسر شده: {{ formatRials(purchaseAmount()) }}</p>
-      }
-    </section>
 
-    <section class="panel">
-      <h2>تغییر ایمیل</h2>
-      <form class="form" [formGroup]="emailForm" (ngSubmit)="changeEmail()">
-        <label>
-          ایمیل جدید
-          <input type="email" formControlName="new_email" />
-        </label>
-        <label>
-          رمز عبور
-          <input type="password" formControlName="password" />
-        </label>
-        <button class="btn-primary" type="submit" [disabled]="emailLoading() || emailForm.invalid">
-          {{ emailLoading() ? 'در حال ذخیره...' : 'ثبت ایمیل' }}
-        </button>
-      </form>
-      @if (emailMessage()) {
-        <p class="status">{{ emailMessage() }}</p>
-      }
-    </section>
+        @case ('credits') {
+          <div class="panel-heading">
+            <h1>خرید credit</h1>
+            <p>credit بخرید و در صورت کمبود موجودی، کیف پول را همین‌جا شارژ کنید.</p>
+          </div>
 
-    <section class="panel">
-      <h2>تغییر شماره موبایل</h2>
-      <form class="form" [formGroup]="phoneForm">
-        <label>
-          شماره جدید
-          <input type="tel" formControlName="new_phone_number" />
-        </label>
+          <div class="wallet-summary">
+            <div>
+              <span>موجودی کیف پول</span>
+              <strong>{{ formatRials(wallet()?.balance ?? 0) }}</strong>
+              <small>{{ wallet()?.currency || 'IRR' }}</small>
+            </div>
+            <button type="button" class="btn-secondary" (click)="reloadWallet()" [disabled]="walletLoading()">
+              {{ walletLoading() ? 'در حال بروزرسانی...' : 'بروزرسانی' }}
+            </button>
+          </div>
 
-        <div class="row">
-          <button class="btn-secondary" type="button" (click)="requestPhoneOtp()" [disabled]="phoneOtpLoading()">
-            {{ phoneOtpLoading() ? 'در حال ارسال...' : 'ارسال کد' }}
-          </button>
-          <button
-            class="btn-secondary"
-            type="button"
-            (click)="verifyPhoneOtp()"
-            [disabled]="phoneOtpVerifying() || !phoneOtpRequested()"
-          >
-            {{ phoneOtpVerifying() ? 'در حال تایید...' : 'تایید کد' }}
-          </button>
-        </div>
+          @if (pricingError()) {
+            <p class="status err">{{ pricingError() }}</p>
+          }
 
-        <label>
-          کد تایید
-          <input type="text" formControlName="code" />
-        </label>
+          <form class="form" [formGroup]="purchaseForm" (ngSubmit)="purchaseCredits()">
+            <label>
+              تعداد پیام
+              <input
+                type="number"
+                formControlName="message_count"
+                [attr.min]="pricing()?.min_purchase ?? 1"
+                [attr.max]="pricing()?.max_purchase ?? 999999"
+              />
+            </label>
+            <div class="settings-list compact">
+              <div class="settings-row">
+                <span>قیمت هر پیام</span>
+                <strong>{{ formatRials(pricing()?.price_per_message ?? 0) }}</strong>
+              </div>
+              <div class="settings-row">
+                <span>محدوده خرید</span>
+                <strong>{{ pricing()?.min_purchase ?? '-' }} تا {{ pricing()?.max_purchase ?? '-' }}</strong>
+              </div>
+              <div class="settings-row">
+                <span>هزینه تقریبی</span>
+                <strong>{{ formatRials(estimatedPurchaseCost()) }}</strong>
+              </div>
+            </div>
 
-        <button
-          class="btn-primary"
-          type="button"
-          (click)="changePhone()"
-          [disabled]="phoneChangeLoading() || phoneForm.invalid || !phoneOtpVerified()"
-        >
-          {{ phoneChangeLoading() ? 'در حال ثبت...' : 'ثبت شماره' }}
-        </button>
-      </form>
-      @if (phoneMessage()) {
-        <p class="status">{{ phoneMessage() }}</p>
-      }
-    </section>
+            @if (walletShortfall(); as shortfall) {
+              <div class="wallet-topup-box">
+                <p>موجودی کیف پول برای این خرید کافی نیست.</p>
+                <button type="button" class="btn-secondary" (click)="openWalletTopUp()">
+                  شارژ کیف پول به مبلغ {{ formatRials(shortfall) }}
+                </button>
+              </div>
+            }
 
-    <section class="panel">
-      <h2>تغییر رمز عبور</h2>
-      <form class="form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-        <label>
-          رمز فعلی
-          <input type="password" formControlName="current_password" />
-        </label>
-        <label>
-          رمز جدید
-          <input type="password" formControlName="new_password" />
-        </label>
-        <button class="btn-primary" type="submit" [disabled]="passwordLoading() || passwordForm.invalid">
-          {{ passwordLoading() ? 'در حال ذخیره...' : 'ثبت رمز جدید' }}
-        </button>
-      </form>
-      @if (passwordMessage()) {
-        <p class="status">{{ passwordMessage() }}</p>
+            <button class="btn-primary" type="submit" [disabled]="purchaseLoading() || purchaseForm.invalid">
+              {{ purchaseLoading() ? 'در حال خرید...' : 'خرید credit' }}
+            </button>
+          </form>
+
+          @if (purchaseMessage()) {
+            <p class="status">{{ purchaseMessage() }}</p>
+          }
+          @if (purchaseAmount() !== null) {
+            <p class="muted">مبلغ کسر شده: {{ formatRials(purchaseAmount()) }}</p>
+          }
+        }
+
+        @case ('email') {
+          <div class="panel-heading">
+            <h1>ایمیل</h1>
+            <p>برای تغییر ایمیل، رمز عبور فعلی لازم است.</p>
+          </div>
+          <form class="form" [formGroup]="emailForm" (ngSubmit)="changeEmail()">
+            <label>
+              ایمیل جدید
+              <input type="email" formControlName="new_email" />
+            </label>
+            <label>
+              رمز عبور
+              <input type="password" formControlName="password" />
+            </label>
+            <button class="btn-primary" type="submit" [disabled]="emailLoading() || emailForm.invalid">
+              {{ emailLoading() ? 'در حال ذخیره...' : 'ثبت ایمیل' }}
+            </button>
+          </form>
+          @if (emailMessage()) {
+            <p class="status">{{ emailMessage() }}</p>
+          }
+        }
+
+        @case ('phone') {
+          <div class="panel-heading">
+            <h1>موبایل</h1>
+            <p>شماره جدید را با کد پیامکی تایید کنید.</p>
+          </div>
+          <form class="form" [formGroup]="phoneForm">
+            <label>
+              شماره جدید
+              <input type="tel" formControlName="new_phone_number" />
+            </label>
+            <div class="row">
+              <button class="btn-secondary" type="button" (click)="requestPhoneOtp()" [disabled]="phoneOtpLoading()">
+                {{ phoneOtpLoading() ? 'در حال ارسال...' : 'ارسال کد' }}
+              </button>
+              <button
+                class="btn-secondary"
+                type="button"
+                (click)="verifyPhoneOtp()"
+                [disabled]="phoneOtpVerifying() || !phoneOtpRequested()"
+              >
+                {{ phoneOtpVerifying() ? 'در حال تایید...' : 'تایید کد' }}
+              </button>
+            </div>
+            <label>
+              کد تایید
+              <input type="text" formControlName="code" />
+            </label>
+            <button
+              class="btn-primary"
+              type="button"
+              (click)="changePhone()"
+              [disabled]="phoneChangeLoading() || phoneForm.invalid || !phoneOtpVerified()"
+            >
+              {{ phoneChangeLoading() ? 'در حال ثبت...' : 'ثبت شماره' }}
+            </button>
+          </form>
+          @if (phoneMessage()) {
+            <p class="status">{{ phoneMessage() }}</p>
+          }
+        }
+
+        @case ('password') {
+          <div class="panel-heading">
+            <h1>رمز عبور</h1>
+            <p>برای امنیت حساب، رمز قوی انتخاب کنید.</p>
+          </div>
+          <form class="form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <label>
+              رمز فعلی
+              <input type="password" formControlName="current_password" />
+            </label>
+            <label>
+              رمز جدید
+              <input type="password" formControlName="new_password" />
+            </label>
+            <button class="btn-primary" type="submit" [disabled]="passwordLoading() || passwordForm.invalid">
+              {{ passwordLoading() ? 'در حال ذخیره...' : 'ثبت رمز جدید' }}
+            </button>
+          </form>
+          @if (passwordMessage()) {
+            <p class="status">{{ passwordMessage() }}</p>
+          }
+        }
       }
     </section>
   </div>
