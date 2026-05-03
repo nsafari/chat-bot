@@ -55,9 +55,10 @@
     </nav>
 
     <div class="sidebar-footer">
-      <span class="user-name">{{ user()?.username || user()?.email || 'کاربر' }}</span>
+      <a routerLink="/chat/account" class="user-name" (click)="closeSidebarOnMobile()">
+        {{ userDisplayName() }}
+      </a>
       <div class="footer-actions">
-        <a routerLink="/chat/account" class="btn-buy-credit" (click)="closeSidebarOnMobile()">خرید credit</a>
         <button class="btn-logout" (click)="logout()">خروج</button>
       </div>
     </div>
@@ -72,10 +73,6 @@
         </svg>
       </button>
       <span class="topbar-title">گفتگو</span>
-      <div class="topbar-actions">
-        <a routerLink="/chat/account" class="topbar-link">اکانت</a>
-        <a routerLink="/chat/account" class="topbar-link">خرید credit</a>
-      </div>
     </div>
     <router-outlet />
   </main>

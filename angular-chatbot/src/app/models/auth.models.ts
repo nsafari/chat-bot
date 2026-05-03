@@ -91,6 +91,7 @@ export interface UserResponse {
   id?: string | null;
   email?: string | null;
   username?: string | null;
+  phone_number?: string | null;
   full_name?: string | null;
   auth_provider?: 'local' | 'google' | 'github' | null;
   is_active?: boolean | null;

@@ -24,6 +24,11 @@ export class ChatLayoutComponent implements OnInit {
   loadingChats = signal(true);
   creatingChat = signal(false);
 
+  userDisplayName = computed(() => {
+    const u = this.user();
+    return u?.username || u?.email || u?.phone_number || 'حساب کاربری';
+  });
+
   remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   needsPayment = computed(() => {
     const r = this.remainingMessages();
