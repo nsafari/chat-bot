@@ -46,49 +46,54 @@
         <span [class.active]="resetStep === 'password'">۳</span>
       </div>
 
-      <form [formGroup]="resetPhoneForm" class="login-form" [class.hidden]="resetStep !== 'phone'">
-        <div class="field">
-          <label for="reset_phone">شماره موبایل</label>
-          <input id="reset_phone" type="tel" formControlName="phone_number" placeholder="09120000000" autocomplete="tel" />
-          <span class="hint">شماره را با 0 اول وارد کنید</span>
-        </div>
-        <button type="button" class="btn-primary" [disabled]="otpLoading" (click)="requestResetOtp()">
-          {{ otpLoading ? 'در حال ارسال کد...' : 'ارسال کد تایید' }}
-        </button>
-      </form>
-
-      <form [formGroup]="resetOtpForm" class="login-form" [class.hidden]="resetStep !== 'otp'">
-        <div class="field">
-          <label for="reset_otp">کد تایید</label>
-          <input id="reset_otp" type="text" formControlName="code" placeholder="کد 4 تا 8 رقمی" inputmode="numeric" />
-        </div>
-        <button type="button" class="btn-primary" [disabled]="verifyingOtp" (click)="verifyResetOtp()">
-          {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
-        </button>
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="requestResetOtp()">
-            {{ otpLoading ? 'در حال ارسال...' : 'ارسال مجدد کد' }}
+      @if (resetStep === 'phone') {
+        <form [formGroup]="resetPhoneForm" class="login-form">
+          <div class="field">
+            <label for="reset_phone">شماره موبایل</label>
+            <input id="reset_phone" type="tel" formControlName="phone_number" placeholder="09120000000" autocomplete="tel" />
+            <span class="hint">شماره را با 0 اول وارد کنید</span>
+          </div>
+          <button type="button" class="btn-primary" [disabled]="otpLoading" (click)="requestResetOtp()">
+            {{ otpLoading ? 'در حال ارسال کد...' : 'ارسال کد تایید' }}
           </button>
-          <button type="button" class="btn-secondary" (click)="backToResetPhone()">تغییر شماره</button>
-        </div>
-      </form>
-
-      <form [formGroup]="resetPasswordForm" (ngSubmit)="resetPassword()" class="login-form" [class.hidden]="resetStep !== 'password'">
-        <div class="field">
-          <label for="new_password">رمز عبور جدید</label>
-          <input
-            id="new_password"
-            type="password"
-            formControlName="new_password"
-            placeholder="••••••••"
-            autocomplete="new-password"
-          />
-          <span class="hint">حداقل ۶ کاراکتر</span>
-        </div>
-        <button type="submit" class="btn-primary" [disabled]="resetLoading">
-          {{ resetLoading ? 'در حال ثبت...' : 'ثبت رمز جدید' }}
-        </button>
-      </form>
+        </form>
+      } @else if (resetStep === 'otp') {
+        <form [formGroup]="resetOtpForm" class="login-form">
+          <div class="field">
+            <label for="reset_otp">کد تایید</label>
+            <input id="reset_otp" type="text" formControlName="code" placeholder="کد 4 تا 8 رقمی" inputmode="numeric" />
+          </div>
+          <button type="button" class="btn-primary" [disabled]="verifyingOtp" (click)="verifyResetOtp()">
+            {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
+          </button>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="resendResetOtp()">
+              {{ otpLoading ? 'در حال ارسال...' : 'ارسال مجدد کد' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="backToResetPhone()">تغییر شماره</button>
+          </div>
+          @if (resetInlineError) {
+            <div class="inline-error">{{ resetInlineError }}</div>
+          }
+        </form>
+      } @else {
+        <form [formGroup]="resetPasswordForm" (ngSubmit)="resetPassword()" class="login-form">
+          <div class="field">
+            <label for="new_password">رمز عبور جدید</label>
+            <input
+              id="new_password"
+              type="password"
+              formControlName="new_password"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+            <span class="hint">حداقل ۶ کاراکتر</span>
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="resetLoading">
+            {{ resetLoading ? 'در حال ثبت...' : 'ثبت رمز جدید' }}
+          </button>
+        </form>
+      }
 
       <button type="button" class="btn-link" (click)="cancelReset()">بازگشت به ورود</button>
     }

@@ -29,6 +29,7 @@ export class LoginComponent {
   resetStep: ResetStep = 'phone';
   error = '';
   resetError = '';
+  resetInlineError = '';
   resetMessage = '';
   private resetOtpProof: string | null = null;
   private resetPhoneNumber = '';
@@ -96,6 +97,7 @@ export class LoginComponent {
     this.showResetPassword = true;
     this.error = '';
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
   }
 
@@ -109,6 +111,7 @@ export class LoginComponent {
     this.resetOtpProof = null;
     this.resetPhoneNumber = '';
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.resetPhoneForm.reset();
     this.resetOtpForm.reset();
@@ -128,6 +131,7 @@ export class LoginComponent {
     }
     this.resetOtpLoading = true;
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.resetPhoneNumber = this.normalizePhone(phone);
     this.auth
@@ -151,6 +155,7 @@ export class LoginComponent {
     if (this.resetVerifyLoading || this.resetOtpForm.invalid || !this.resetPhoneNumber) return;
     this.resetVerifyLoading = true;
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.auth
       .verifyOtp({
@@ -176,6 +181,7 @@ export class LoginComponent {
     if (this.resetPasswordLoading || this.resetPasswordForm.invalid || !this.resetOtpProof || !this.resetPhoneNumber) return;
     this.resetPasswordLoading = true;
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.auth
       .resetPassword({
@@ -208,18 +214,20 @@ export class LoginComponent {
     this.resetOtpProof = null;
     this.resetPhoneNumber = '';
     this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.resetOtpForm.reset();
     this.resetPasswordForm.reset();
   }
 
   resendResetOtp(): void {
+    if (this.resetOtpLoading) return;
     if (!this.resetPhoneNumber) {
       this.resetStep = 'phone';
       return;
     }
     this.resetOtpLoading = true;
-    this.resetError = '';
+    this.resetInlineError = '';
     this.resetMessage = '';
     this.auth
       .requestOtp({ phone_number: this.resetPhoneNumber, purpose: 'reset_password' })
@@ -232,7 +240,7 @@ export class LoginComponent {
           this.resetOtpForm.reset();
         },
         error: (err) => {
-          this.resetError = getErrorMessage(err);
+          this.resetInlineError = getErrorMessage(err);
         }
       });
   }
