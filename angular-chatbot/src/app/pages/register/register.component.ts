@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,7 +16,7 @@ type RegisterStep = 'phone' | 'otp' | 'profile';
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   phoneForm: FormGroup;
   otpForm: FormGroup;
   accountForm: FormGroup;
@@ -25,9 +25,13 @@ export class RegisterComponent {
   otpLoading = false;
   verifyingOtp = false;
   error = '';
+  otpInlineError = '';
   otpMessage = '';
   private otpProof: string | null = null;
   private verifiedPhone: string | null = null;
+  private requestedPhone: string | null = null;
+  otpCooldownSeconds = 0;
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -49,13 +53,20 @@ export class RegisterComponent {
       },
       { validators: [this.usernameOrEmailRequired] }
     );
-    this.phoneForm.get('phone_number')?.valueChanges.subscribe(() => {
-      this.resetOtpState();
+    this.phoneForm.get('phone_number')?.valueChanges.subscribe((value) => {
+      const normalized = PHONE_REGEX.test(value?.trim() ?? '') ? this.normalizePhone(value.trim()) : null;
+      if (this.requestedPhone && normalized !== this.requestedPhone) {
+        this.resetOtpState();
+      }
     });
   }
 
-  requestOtp(): void {
-    if (this.otpLoading) return;
+  ngOnDestroy(): void {
+    this.clearCooldown();
+  }
+
+  requestOtp(preserveStepOnError = false): void {
+    if (this.otpLoading || this.otpCooldownSeconds > 0) return;
     const phone = this.phoneForm.get('phone_number')?.value?.trim() ?? '';
     if (!PHONE_REGEX.test(phone)) {
       this.error = 'شماره موبایل معتبر نیست. قالب مجاز: 09xxxxxxxxx یا +989xxxxxxxxx یا 989xxxxxxxxx';
@@ -63,6 +74,7 @@ export class RegisterComponent {
     }
     this.otpLoading = true;
     this.error = '';
+    this.otpInlineError = '';
     this.otpMessage = '';
     const normalizedPhone = this.normalizePhone(phone);
     this.auth
@@ -74,11 +86,17 @@ export class RegisterComponent {
           this.step = 'otp';
           this.otpProof = null;
           this.verifiedPhone = null;
+          this.requestedPhone = normalizedPhone;
           this.otpForm.reset();
+          this.startCooldown(res.resend_after_seconds);
         },
         error: (err) => {
-          this.resetOtpState();
-          this.error = getErrorMessage(err);
+          const message = getErrorMessage(err);
+          if (preserveStepOnError) {
+            this.otpInlineError = message;
+          } else {
+            this.error = message;
+          }
         }
       });
   }
@@ -93,6 +111,7 @@ export class RegisterComponent {
     const code = this.otpForm.get('code')?.value?.trim() ?? '';
     this.verifyingOtp = true;
     this.error = '';
+    this.otpInlineError = '';
     this.otpMessage = '';
     this.auth
       .verifyOtp({
@@ -150,15 +169,17 @@ export class RegisterComponent {
   }
 
   resendOtp(): void {
+    if (this.otpLoading || this.otpCooldownSeconds > 0) return;
     this.otpForm.reset();
     this.otpProof = null;
     this.verifiedPhone = null;
-    this.requestOtp();
+    this.requestOtp(true);
   }
 
   editPhone(): void {
     this.resetOtpState();
     this.error = '';
+    this.otpInlineError = '';
     this.otpMessage = '';
   }
 
@@ -166,7 +187,10 @@ export class RegisterComponent {
     this.step = 'phone';
     this.otpProof = null;
     this.verifiedPhone = null;
+    this.requestedPhone = null;
+    this.otpInlineError = '';
     this.otpForm.reset();
+    this.clearCooldown();
   }
 
   backToPhone(): void {
@@ -198,6 +222,26 @@ export class RegisterComponent {
   private cleanOptional(value: string): string | null {
     const trimmed = value.trim();
     return trimmed ? trimmed : null;
+  }
+
+  private startCooldown(seconds: number): void {
+    this.clearCooldown();
+    this.otpCooldownSeconds = Math.max(0, seconds || 0);
+    if (this.otpCooldownSeconds <= 0) return;
+    this.cooldownTimer = setInterval(() => {
+      this.otpCooldownSeconds = Math.max(0, this.otpCooldownSeconds - 1);
+      if (this.otpCooldownSeconds === 0) {
+        this.clearCooldown();
+      }
+    }, 1000);
+  }
+
+  private clearCooldown(): void {
+    if (this.cooldownTimer) {
+      clearInterval(this.cooldownTimer);
+      this.cooldownTimer = null;
+    }
+    this.otpCooldownSeconds = 0;
   }
 
   private normalizePhone(phone: string): string {
