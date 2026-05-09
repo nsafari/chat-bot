@@ -133,7 +133,7 @@ export class LoginComponent implements OnDestroy {
 
   requestResetOtp(): void {
     if (this.resetOtpLoading || this.resetPhoneForm.invalid || this.resetOtpCooldownActive) return;
-    const phone = this.resetPhoneForm.controls.phone_number.value.trim();
+    const phone = this.resetPhoneForm.controls['phone_number'].value.trim();
     if (!PHONE_REGEX.test(phone)) {
       this.resetError = 'شماره موبایل معتبر نیست.';
       return;
@@ -169,7 +169,7 @@ export class LoginComponent implements OnDestroy {
       .verifyOtp({
         phone_number: this.resetPhoneNumber,
         purpose: 'reset_password',
-        code: this.resetOtpForm.controls.code.value.trim()
+        code: this.resetOtpForm.controls['code'].value.trim()
       })
       .pipe(finalize(() => (this.resetVerifyLoading = false)))
       .subscribe({
@@ -194,13 +194,13 @@ export class LoginComponent implements OnDestroy {
       .resetPassword({
         phone_number: this.resetPhoneNumber,
         otp_proof: this.resetOtpProof,
-        new_password: this.resetPasswordForm.controls.new_password.value
+        new_password: this.resetPasswordForm.controls['new_password'].value
       })
       .pipe(finalize(() => (this.resetPasswordLoading = false)))
       .subscribe({
         next: (res) => {
           this.resetMessage = res.message || 'رمز عبور با موفقیت تغییر کرد.';
-          this.form.patchValue({ login: this.resetPhoneForm.controls.phone_number.value, password: '' });
+          this.form.patchValue({ login: this.resetPhoneForm.controls['phone_number'].value, password: '' });
           this.resetStep = 'phone';
           this.resetOtpProof = null;
           this.resetOtpForm.reset();
