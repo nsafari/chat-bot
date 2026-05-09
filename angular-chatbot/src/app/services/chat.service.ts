@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { ApiConfigService } from './api-config.service';
 import type {
   ChatCreate,
@@ -14,6 +14,9 @@ import type {
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
+  private chatListChanged = new Subject<void>();
+  chatListChanged$ = this.chatListChanged.asObservable();
+
   constructor(
     private http: HttpClient,
     private apiConfig: ApiConfigService
@@ -53,5 +56,9 @@ export class ChatService {
 
   sendMessage(chatId: string, content: string): Observable<RAGQueryResponse> {
     return this.http.post<RAGQueryResponse>(`${this.apiUrl}/${chatId}/messages`, { content });
+  }
+
+  notifyChatListChanged(): void {
+    this.chatListChanged.next();
   }
 }

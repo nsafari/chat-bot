@@ -52,7 +52,7 @@
           <input id="reset_phone" type="tel" formControlName="phone_number" placeholder="09120000000" autocomplete="tel" />
           <span class="hint">شماره را با 0 اول وارد کنید</span>
         </div>
-        <button type="button" class="btn-primary" [disabled]="otpLoading" (click)="requestResetOtp()">
+        <button type="button" class="btn-primary" [disabled]="otpLoading || resetOtpCooldownActive" (click)="requestResetOtp()">
           {{ otpLoading ? 'در حال ارسال کد...' : 'ارسال کد تایید' }}
         </button>
       </form>
@@ -66,8 +66,8 @@
           {{ verifyingOtp ? 'در حال بررسی...' : 'تایید کد' }}
         </button>
         <div class="form-actions">
-          <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="requestResetOtp()">
-            {{ otpLoading ? 'در حال ارسال...' : 'ارسال مجدد کد' }}
+          <button type="button" class="btn-secondary" [disabled]="otpLoading || resetOtpCooldownActive" (click)="resendResetOtp()">
+            {{ otpLoading ? 'در حال ارسال...' : resetOtpCooldownActive ? 'ارسال مجدد کد (' + resetOtpCooldown + ')' : 'ارسال مجدد کد' }}
           </button>
           <button type="button" class="btn-secondary" (click)="backToResetPhone()">تغییر شماره</button>
         </div>

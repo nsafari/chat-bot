@@ -19,7 +19,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && !req.url.includes('/refresh')) {
+      if (err.status === 401 && !isPublicAuthRequest && !req.url.includes('/refresh')) {
         return auth.refreshToken().pipe(
           switchMap(() => {
             const newToken = auth.getAccessToken();

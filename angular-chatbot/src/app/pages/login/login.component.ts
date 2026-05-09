@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,7 +16,7 @@ type ResetStep = 'phone' | 'otp' | 'password';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   form: FormGroup;
   resetPhoneForm: FormGroup;
   resetOtpForm: FormGroup;
@@ -25,6 +25,7 @@ export class LoginComponent {
   resetOtpLoading = false;
   resetVerifyLoading = false;
   resetPasswordLoading = false;
+  resetOtpCooldown = 0;
   showResetPassword = false;
   resetStep: ResetStep = 'phone';
   error = '';
@@ -32,6 +33,8 @@ export class LoginComponent {
   resetMessage = '';
   private resetOtpProof: string | null = null;
   private resetPhoneNumber = '';
+  private resetOtpCooldownTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly defaultResetOtpCooldownSeconds = 60;
 
   constructor(
     private fb: FormBuilder,
@@ -51,6 +54,10 @@ export class LoginComponent {
     this.resetPasswordForm = this.fb.nonNullable.group({
       new_password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]]
     });
+  }
+
+  ngOnDestroy(): void {
+    this.clearResetOtpCooldown();
   }
 
   get resetMode(): boolean {
@@ -75,6 +82,10 @@ export class LoginComponent {
 
   get resetLoading(): boolean {
     return this.resetPasswordLoading;
+  }
+
+  get resetOtpCooldownActive(): boolean {
+    return this.resetOtpCooldown > 0;
   }
 
   onSubmit(): void {
@@ -113,6 +124,7 @@ export class LoginComponent {
     this.resetPhoneForm.reset();
     this.resetOtpForm.reset();
     this.resetPasswordForm.reset();
+    this.clearResetOtpCooldown();
   }
 
   cancelReset(): void {
@@ -120,8 +132,8 @@ export class LoginComponent {
   }
 
   requestResetOtp(): void {
-    if (this.resetOtpLoading || this.resetPhoneForm.invalid) return;
-    const phone = this.resetPhoneForm.controls.phone_number.value.trim();
+    if (this.resetOtpLoading || this.resetPhoneForm.invalid || this.resetOtpCooldownActive) return;
+    const phone = this.resetPhoneForm.controls['phone_number'].value.trim();
     if (!PHONE_REGEX.test(phone)) {
       this.resetError = 'شماره موبایل معتبر نیست.';
       return;
@@ -139,6 +151,7 @@ export class LoginComponent {
           this.resetStep = 'otp';
           this.resetOtpProof = null;
           this.resetOtpForm.reset();
+          this.startResetOtpCooldown(res.resend_after_seconds);
         },
         error: (err) => {
           this.resetError = getErrorMessage(err);
@@ -156,7 +169,7 @@ export class LoginComponent {
       .verifyOtp({
         phone_number: this.resetPhoneNumber,
         purpose: 'reset_password',
-        code: this.resetOtpForm.controls.code.value.trim()
+        code: this.resetOtpForm.controls['code'].value.trim()
       })
       .pipe(finalize(() => (this.resetVerifyLoading = false)))
       .subscribe({
@@ -181,17 +194,18 @@ export class LoginComponent {
       .resetPassword({
         phone_number: this.resetPhoneNumber,
         otp_proof: this.resetOtpProof,
-        new_password: this.resetPasswordForm.controls.new_password.value
+        new_password: this.resetPasswordForm.controls['new_password'].value
       })
       .pipe(finalize(() => (this.resetPasswordLoading = false)))
       .subscribe({
         next: (res) => {
           this.resetMessage = res.message || 'رمز عبور با موفقیت تغییر کرد.';
-          this.form.patchValue({ login: this.resetPhoneForm.controls.phone_number.value, password: '' });
+          this.form.patchValue({ login: this.resetPhoneForm.controls['phone_number'].value, password: '' });
           this.resetStep = 'phone';
           this.resetOtpProof = null;
           this.resetOtpForm.reset();
           this.resetPasswordForm.reset();
+          this.clearResetOtpCooldown();
         },
         error: (err) => {
           this.resetError = getErrorMessage(err);
@@ -211,9 +225,11 @@ export class LoginComponent {
     this.resetMessage = '';
     this.resetOtpForm.reset();
     this.resetPasswordForm.reset();
+    this.clearResetOtpCooldown();
   }
 
   resendResetOtp(): void {
+    if (this.resetOtpLoading || this.resetOtpCooldownActive) return;
     if (!this.resetPhoneNumber) {
       this.resetStep = 'phone';
       return;
@@ -230,11 +246,33 @@ export class LoginComponent {
           this.resetStep = 'otp';
           this.resetOtpProof = null;
           this.resetOtpForm.reset();
+          this.startResetOtpCooldown(res.resend_after_seconds);
         },
         error: (err) => {
           this.resetError = getErrorMessage(err);
         }
       });
+  }
+
+  private startResetOtpCooldown(seconds: number | null | undefined): void {
+    this.clearResetOtpCooldown();
+    const cooldown = Math.max(0, Math.ceil(Number(seconds ?? this.defaultResetOtpCooldownSeconds)));
+    if (cooldown <= 0) return;
+    this.resetOtpCooldown = cooldown;
+    this.resetOtpCooldownTimer = setInterval(() => {
+      this.resetOtpCooldown = Math.max(0, this.resetOtpCooldown - 1);
+      if (this.resetOtpCooldown === 0) {
+        this.clearResetOtpCooldown();
+      }
+    }, 1000);
+  }
+
+  private clearResetOtpCooldown(): void {
+    if (this.resetOtpCooldownTimer) {
+      clearInterval(this.resetOtpCooldownTimer);
+      this.resetOtpCooldownTimer = null;
+    }
+    this.resetOtpCooldown = 0;
   }
 
   private normalizePhone(phone: string): string {
