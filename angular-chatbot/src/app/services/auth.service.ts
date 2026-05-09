@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, of, map } from 'rxjs';
+import { Observable, tap, catchError, of, map, switchMap } from 'rxjs';
 import type {
   UserCreate,
   UserLogin,
@@ -45,8 +45,9 @@ export class AuthService {
     private apiConfig: ApiConfigService
   ) {
     const token = this.tokenSignal();
-    if (token) {
-      this.loadUser().pipe(catchError(() => this.clearAuthAndReturnNull())).subscribe();
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    if (token || refresh) {
+      this.ensureSession().subscribe();
     }
   }
 
@@ -100,36 +101,32 @@ export class AuthService {
     );
   }
 
-  refreshToken(): Observable<Token> {
+  refreshToken(): Observable<Token | null> {
     const refresh = localStorage.getItem(REFRESH_KEY);
     if (!refresh) {
-      this.clearAuth();
-      return of(null as unknown as Token);
+      this.clearStoredAuth();
+      return of(null);
     }
     return this.http.post<Token>(`${this.apiUrl}/refresh`, { refresh_token: refresh }).pipe(
       tap((res) => this.handleAuthSuccess(res)),
       catchError(() => {
-        this.clearAuth();
-        return of(null as unknown as Token);
+        this.clearStoredAuth();
+        return of(null);
       })
     );
   }
 
   ensureSession(): Observable<boolean> {
     const token = this.getAccessToken();
-    if (!token) {
-      this.clearStoredAuth();
-      return of(false);
-    }
     if (this.userSignal()) {
       return of(true);
     }
+    if (!token) {
+      return this.refreshSession();
+    }
     return this.loadUser().pipe(
       map(() => true),
-      catchError(() => {
-        this.clearStoredAuth();
-        return of(false);
-      })
+      catchError(() => this.refreshSession())
     );
   }
 
@@ -190,17 +187,25 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  private refreshSession(): Observable<boolean> {
+    return this.refreshToken().pipe(
+      switchMap((token) => {
+        if (!token) return of(false);
+        return this.loadUser().pipe(map(() => true));
+      }),
+      catchError(() => {
+        this.clearStoredAuth();
+        return of(false);
+      })
+    );
+  }
+
   private clearStoredAuth(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
     this.tokenSignal.set(null);
     this.userSignal.set(null);
-  }
-
-  private clearAuthAndReturnNull(): Observable<null> {
-    this.clearStoredAuth();
-    return of(null);
   }
 
   private getStoredToken(): string | null {

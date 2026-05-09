@@ -55,7 +55,7 @@
             [disabled]="sending()"
             (keydown.enter)="$event.preventDefault(); send()"
           />
-          <button type="submit" class="btn-send" [disabled]="!input.value.trim()">
+          <button type="submit" class="btn-send" [disabled]="sending() || !input.value.trim()">
             @if (sending()) {
               <span class="spinner-small"></span>
             } @else {

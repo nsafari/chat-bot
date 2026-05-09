@@ -120,6 +120,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.replacePendingUserMessage(res.user_message);
         this.startAssistantTyping(res.assistant_message);
         this.auth.updateRemainingMessages(this.extractRemainingCredits(res));
+        this.chat.notifyChatListChanged();
       },
       error: (err) => {
         this.removePendingMessages();
@@ -261,10 +262,14 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   formatTime(iso: string): string {
     try {
-      const d = new Date(iso);
+      const d = new Date(this.normalizeTimestamp(iso));
       return d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
     }
+  }
+
+  private normalizeTimestamp(value: string): string {
+    return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`;
   }
 }
