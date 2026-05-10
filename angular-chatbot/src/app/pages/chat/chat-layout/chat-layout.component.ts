@@ -1,10 +1,10 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { ChatService } from '../../../services/chat.service';
 import type { ChatResponse } from '../../../models/chat.models';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat-layout',
@@ -25,6 +25,11 @@ export class ChatLayoutComponent implements OnInit, OnDestroy {
   chats = signal<ChatResponse[]>([]);
   loadingChats = signal(true);
   creatingChat = signal(false);
+
+  userDisplayName = computed(() => {
+    const u = this.user();
+    return u?.username || u?.email || u?.phone_number || 'حساب کاربری';
+  });
 
   remainingMessages = computed(() => this.auth.user()?.remaining_messages ?? null);
   needsPayment = computed(() => {
@@ -61,8 +66,8 @@ export class ChatLayoutComponent implements OnInit, OnDestroy {
     this.creatingChat.set(true);
     this.chat.listChats(0, 50).subscribe({
       next: (res) => {
-        const chats = this.setChats(res.chats);
-        const emptyChat = chats.find((chat) => (chat.message_count ?? 0) === 0);
+        const list = this.setChats(res.chats);
+        const emptyChat = list.find((chat) => (chat.message_count ?? 0) === 0);
         if (emptyChat) {
           this.creatingChat.set(false);
           this.router.navigate(['/chat', emptyChat.id]);

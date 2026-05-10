@@ -30,8 +30,14 @@
           <span class="hint">شماره را با 0 اول وارد کنید</span>
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="otpLoading || phoneForm.invalid">
-          {{ otpLoading ? 'در حال ارسال کد...' : 'ارسال کد تایید' }}
+        <button type="submit" class="btn-primary" [disabled]="otpLoading || phoneForm.invalid || otpCooldownSeconds > 0">
+          @if (otpLoading) {
+            در حال ارسال کد...
+          } @else if (otpCooldownSeconds > 0) {
+            ارسال مجدد تا {{ otpCooldownSeconds }} ثانیه
+          } @else {
+            ارسال کد تایید
+          }
         </button>
       </form>
     } @else if (step === 'otp') {
@@ -59,13 +65,22 @@
         </div>
 
         <div class="action-row">
-          <button type="button" class="btn-secondary" [disabled]="otpLoading" (click)="requestOtp()">
-            {{ otpLoading ? 'در حال ارسال...' : 'ارسال مجدد کد' }}
+          <button type="button" class="btn-secondary" [disabled]="otpLoading || otpCooldownSeconds > 0" (click)="resendOtp()">
+            @if (otpLoading) {
+              در حال ارسال...
+            } @else if (otpCooldownSeconds > 0) {
+              ارسال مجدد تا {{ otpCooldownSeconds }} ثانیه
+            } @else {
+              ارسال مجدد کد
+            }
           </button>
           <button type="button" class="btn-link" [disabled]="otpLoading || verifyingOtp" (click)="backToPhone()">
             تغییر شماره
           </button>
         </div>
+        @if (otpInlineError) {
+          <div class="inline-error">{{ otpInlineError }}</div>
+        }
       </form>
     } @else {
       <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="register-form">
